@@ -41,7 +41,7 @@ func NewConfiguration(log *libbuildpack.Logger) *Configuration {
 }
 
 func (conf Configuration) UseSealights() bool {
-	fmt.Println("Sealights. UseSealights %v", conf.Value)
+	fmt.Printf("Sealights. UseSealights %+v\n", conf.Value)
 	return conf.Value != nil
 }
 
@@ -96,6 +96,8 @@ func (conf Configuration) parseVcapServices() {
 			}
 
 			conf.Value = options
+			fmt.Printf("Sealights. options %+v\n", options)
+			fmt.Printf("Sealights. conf.Value %+v\n", conf.Value)
 			conf.Log.Warning("conf.Value set")
 			return
 		}
