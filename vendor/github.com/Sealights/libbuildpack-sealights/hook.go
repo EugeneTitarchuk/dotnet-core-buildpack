@@ -32,9 +32,10 @@ func NewHook() libbuildpack.Hook {
 func (h *SealightsHook) AfterCompile(stager *libbuildpack.Stager) error {
 
 	h.Log.Debug("Sealights. Check servicec status...")
-
+	h.Log.Info("Sealights. Check servicec status...")
 	conf := NewConfiguration(h.Log)
 	if !conf.UseSealights() {
+		h.Log.Info("Sealights. Service disabled")
 		h.Log.Debug("Sealights. Service disabled")
 		return nil
 	}
