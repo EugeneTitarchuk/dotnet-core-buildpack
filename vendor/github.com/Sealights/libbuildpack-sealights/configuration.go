@@ -47,6 +47,8 @@ func (conf Configuration) parseVcapServices() {
 		Name        string                 `json:"name"`
 		Credentials map[string]interface{} `json:"credentials"`
 	}
+	conf.Log.Info("VCAP_SERVICES: ")
+	conf.Log.Info(os.Getenv("VCAP_SERVICES"))
 
 	if err := json.Unmarshal([]byte(os.Getenv("VCAP_SERVICES")), &vcapServices); err != nil {
 		conf.Log.Debug("Failed to unmarshal VCAP_SERVICES: %s", err)
@@ -55,6 +57,7 @@ func (conf Configuration) parseVcapServices() {
 
 	for _, services := range vcapServices {
 		for _, service := range services {
+			conf.Log.Info(service.Name)
 			if !strings.Contains(strings.ToLower(service.Name), "sealights") {
 				continue
 			}
