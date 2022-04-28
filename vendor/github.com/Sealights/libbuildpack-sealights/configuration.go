@@ -2,6 +2,7 @@ package sealights
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 
@@ -40,6 +41,7 @@ func NewConfiguration(log *libbuildpack.Logger) *Configuration {
 }
 
 func (conf Configuration) UseSealights() bool {
+	fmt.Println("Sealights. UseSealights %v", conf.Value)
 	return conf.Value != nil
 }
 
