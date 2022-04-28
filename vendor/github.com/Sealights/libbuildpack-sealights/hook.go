@@ -18,30 +18,32 @@ type SealightsHook struct {
 	libbuildpack.DefaultHook
 	Log     *libbuildpack.Logger
 	Command Command
-
-	// MaxDownloadRetries is the maximum number of retries the hook will try to download the agent if they fail.
-	MaxDownloadRetries int
 }
 
 // NewHook returns a libbuildpack.Hook instance for integrating with Sealights
 func NewHook() libbuildpack.Hook {
 	return &SealightsHook{
-		Log:                 libbuildpack.NewLogger(os.Stdout),
-		Command:             &libbuildpack.Command{},
-		MaxDownloadRetries:  3,
+		Log:     libbuildpack.NewLogger(os.Stdout),
+		Command: &libbuildpack.Command{},
 	}
 }
 
 // AfterCompile downloads and installs the Dynatrace agent.
 func (h *SealightsHook) AfterCompile(stager *libbuildpack.Stager) error {
 
-	h.Log.Info("Sealights. After compile")
+	h.Log.Debug("Sealights. Check servicec status...")
 
-	conf := NewConfiguration(h.Log);
-	if (!conf.UseSealights()){
-		h.Log.Info("Sealights. Service disabled")
+	conf := NewConfiguration(h.Log)
+	if !conf.UseSealights() {
+		h.Log.Debug("Sealights. Service disabled")
+		return nil
 	}
-	
+
+	h.Log.Info("Sealights. Service enabled")
+
+	installer := NewInstaller(stager, h.Log, conf.Value)
+	installer.InstallAgent()
+
 	// Get buildpack version and language
 
 	lang := stager.BuildpackLanguage()
