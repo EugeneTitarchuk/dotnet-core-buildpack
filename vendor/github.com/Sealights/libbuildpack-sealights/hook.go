@@ -31,12 +31,11 @@ func NewHook() libbuildpack.Hook {
 // AfterCompile downloads and installs the Dynatrace agent.
 func (h *SealightsHook) AfterCompile(stager *libbuildpack.Stager) error {
 
-	h.Log.Debug("Sealights. Check servicec status...")
 	h.Log.Info("Sealights. Check servicec status...")
+
 	conf := NewConfiguration(h.Log)
 	if !conf.UseSealights() {
-		h.Log.Info("Sealights. Service disabled")
-		h.Log.Debug("Sealights. Service disabled")
+		h.Log.Info("Sealights service isn't configured")
 		return nil
 	}
 

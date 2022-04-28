@@ -2,7 +2,6 @@ package sealights
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"strings"
 
@@ -41,11 +40,10 @@ func NewConfiguration(log *libbuildpack.Logger) *Configuration {
 }
 
 func (conf Configuration) UseSealights() bool {
-	fmt.Printf("Sealights. UseSealights %+v\n", conf.Value)
 	return conf.Value != nil
 }
 
-func (conf Configuration) parseVcapServices() {
+func (conf *Configuration) parseVcapServices() {
 
 	var vcapServices map[string][]struct {
 		Name        string                 `json:"name"`
@@ -82,7 +80,7 @@ func (conf Configuration) parseVcapServices() {
 				ProfilerLogDir:   queryString("profilerLogDir"),
 				ProfilerLogLevel: queryString("profilerLogLevel"),
 			}
-			conf.Log.Warning("Sealights options parsed")
+
 			isTokenProvided := options.Token != "" || options.TokenFile != ""
 			if !isTokenProvided {
 				conf.Log.Warning("Sealights access token isn't provided")
@@ -96,9 +94,6 @@ func (conf Configuration) parseVcapServices() {
 			}
 
 			conf.Value = options
-			fmt.Printf("Sealights. options %+v\n", options)
-			fmt.Printf("Sealights. conf.Value %+v\n", conf.Value)
-			conf.Log.Warning("conf.Value set")
 			return
 		}
 	}
