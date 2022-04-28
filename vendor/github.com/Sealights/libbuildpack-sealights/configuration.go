@@ -80,7 +80,7 @@ func (conf Configuration) parseVcapServices() {
 				ProfilerLogDir:   queryString("profilerLogDir"),
 				ProfilerLogLevel: queryString("profilerLogLevel"),
 			}
-
+			conf.Log.Warning("Sealights options parsed")
 			isTokenProvided := options.Token != "" || options.TokenFile != ""
 			if !isTokenProvided {
 				conf.Log.Warning("Sealights access token isn't provided")
@@ -94,6 +94,7 @@ func (conf Configuration) parseVcapServices() {
 			}
 
 			conf.Value = options
+			conf.Log.Warning("conf.Value set")
 			return
 		}
 	}
