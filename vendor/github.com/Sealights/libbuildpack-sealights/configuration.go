@@ -81,13 +81,13 @@ func (conf Configuration) parseVcapServices() {
 				ProfilerLogLevel: queryString("profilerLogLevel"),
 			}
 
-			isTokenProvided := options.Token != "" && options.TokenFile != ""
+			isTokenProvided := options.Token != "" || options.TokenFile != ""
 			if !isTokenProvided {
 				conf.Log.Warning("Sealights access token isn't provided")
 				return
 			}
 
-			isSessionIdProvided := options.BsId != "" && options.BsIdFile != ""
+			isSessionIdProvided := options.BsId != "" || options.BsIdFile != ""
 			if !isSessionIdProvided {
 				conf.Log.Warning("Sealights build session id isn't provided")
 				return
