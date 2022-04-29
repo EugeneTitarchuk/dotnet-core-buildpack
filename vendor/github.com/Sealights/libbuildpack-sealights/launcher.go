@@ -3,7 +3,6 @@ package sealights
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -33,21 +32,21 @@ func NewLauncher(log *libbuildpack.Logger, options *SealightsOptions, agentInsta
 }
 
 func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
-	// la.Log.Warning(filepath.Join(stager.BuildDir(), Procfile))
-	// la.Log.Warning(filepath.Join(stager.BuildDir(), ManifestFile))
+	releasePath := filepath.Join(stager.BuildDir(), "tmp", "dotnet-core-buildpack-release-step.yml")
 
-	filepath.Walk(stager.BuildDir(), func(name string, info os.FileInfo, err error) error {
+	// expected file format:
+	// default_process_types:\n web: cd ${DEPS_DIR}/0/dotnet_publish && exec ./app --server.urls http://0.0.0.0:${PORT}
 
-		la.Log.Warning(name)
-		return nil
-	})
+	releaseYmlContent, _ := ioutil.ReadFile(releasePath)
+	la.Log.Warning(string(releaseYmlContent))
 
-	stagingYml := filepath.Clean(filepath.Join(stager.BuildDir(), "tmp", "dotnet-core-buildpack-release-step.yml"))
-	la.Log.Warning(stagingYml)
-	stagingYmlContent, _ := ioutil.ReadFile(stagingYml)
-	la.Log.Warning(string(stagingYmlContent))
-	editedStagingYmlContent := strings.Replace(string(stagingYmlContent), "./SimpleConsole", "dotnet --info", -1)
-	ioutil.WriteFile(stagingYml, []byte(editedStagingYmlContent), 0644)
+	parts := strings.SplitAfter(string(releaseYmlContent), "exec ")
+	newCmd := parts[0] + la.buildCommandLine(parts[1], stager.BuildDir())
+
+	ioutil.WriteFile(releasePath, []byte(newCmd), 0644)
+
+	afterChange, _ := ioutil.ReadFile(releasePath)
+	la.Log.Warning(string(afterChange))
 	// stagingYml := filepath.Clean(filepath.Join(stager.BuildDir(), "..", "staging_info.yml"))
 	// la.Log.Warning(stagingYml)
 	// stagingYmlContent, _ := ioutil.ReadFile(stagingYml)
