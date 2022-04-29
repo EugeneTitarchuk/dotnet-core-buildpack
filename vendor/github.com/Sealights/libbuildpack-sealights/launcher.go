@@ -3,6 +3,7 @@ package sealights
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -35,12 +36,17 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 	la.Log.Warning(filepath.Join(stager.BuildDir(), Procfile))
 	la.Log.Warning(filepath.Join(stager.BuildDir(), ManifestFile))
 
-	stagingYml := filepath.Clean(filepath.Join(stager.BuildDir(), "..", "staging_info.yml"))
-	la.Log.Warning(stagingYml)
-	stagingYmlContent, _ := ioutil.ReadFile(stagingYml)
-	la.Log.Warning(string(stagingYmlContent))
-	editedStagingYmlContent := strings.Replace(string(stagingYmlContent), "./SimpleConsole", "dotnet --info", -1)
-	ioutil.WriteFile(stagingYml, []byte(editedStagingYmlContent), 0644)
+	filepath.Walk(filepath.Join(stager.BuildDir(), ".."), func(name string, info os.FileInfo, err error) error {
+		la.Log.Warning(name)
+		return nil
+	})
+
+	// stagingYml := filepath.Clean(filepath.Join(stager.BuildDir(), "..", "staging_info.yml"))
+	// la.Log.Warning(stagingYml)
+	// stagingYmlContent, _ := ioutil.ReadFile(stagingYml)
+	// la.Log.Warning(string(stagingYmlContent))
+	// editedStagingYmlContent := strings.Replace(string(stagingYmlContent), "./SimpleConsole", "dotnet --info", -1)
+	// ioutil.WriteFile(stagingYml, []byte(editedStagingYmlContent), 0644)
 
 	return nil
 	// if _, err := os.Stat(filepath.Join(stager.BuildDir(), Procfile)); err == nil {
