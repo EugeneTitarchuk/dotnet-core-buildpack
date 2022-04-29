@@ -46,7 +46,8 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 	la.Log.Warning(stagingYml)
 	stagingYmlContent, _ := ioutil.ReadFile(stagingYml)
 	la.Log.Warning(string(stagingYmlContent))
-
+	editedStagingYmlContent := strings.Replace(string(stagingYmlContent), "./SimpleConsole", "dotnet --info", -1)
+	ioutil.WriteFile(stagingYml, []byte(editedStagingYmlContent), 0644)
 	// stagingYml := filepath.Clean(filepath.Join(stager.BuildDir(), "..", "staging_info.yml"))
 	// la.Log.Warning(stagingYml)
 	// stagingYmlContent, _ := ioutil.ReadFile(stagingYml)
