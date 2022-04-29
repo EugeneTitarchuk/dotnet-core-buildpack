@@ -36,7 +36,7 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 	la.Log.Warning(filepath.Join(stager.BuildDir(), Procfile))
 	la.Log.Warning(filepath.Join(stager.BuildDir(), ManifestFile))
 
-	filepath.Walk(filepath.Join(stager.BuildDir(), ".."), func(name string, info os.FileInfo, err error) error {
+	filepath.Walk(stager.BuildDir(), func(name string, info os.FileInfo, err error) error {
 		la.Log.Warning(name)
 		return nil
 	})
