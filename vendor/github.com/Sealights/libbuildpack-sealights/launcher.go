@@ -3,6 +3,7 @@ package sealights
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -35,15 +36,13 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 	// la.Log.Warning(filepath.Join(stager.BuildDir(), Procfile))
 	// la.Log.Warning(filepath.Join(stager.BuildDir(), ManifestFile))
 
-	// filepath.Walk(stager.BuildDir(), func(name string, info os.FileInfo, err error) error {
-	// 	if (string.){
+	filepath.Walk(stager.BuildDir(), func(name string, info os.FileInfo, err error) error {
 
-	// 	}
-	// 	la.Log.Warning(name)
-	// 	return nil
-	// })
+		la.Log.Warning(name)
+		return nil
+	})
 
-	stagingYml := filepath.Clean(filepath.Join(stager.BuildDir(), "dotnet-core-buildpack-release-step.yml"))
+	stagingYml := filepath.Clean(filepath.Join(stager.BuildDir(), "tmp", "dotnet-core-buildpack-release-step.yml"))
 	la.Log.Warning(stagingYml)
 	stagingYmlContent, _ := ioutil.ReadFile(stagingYml)
 	la.Log.Warning(string(stagingYmlContent))
