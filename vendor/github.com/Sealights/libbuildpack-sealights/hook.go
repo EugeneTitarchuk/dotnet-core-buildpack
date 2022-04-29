@@ -14,7 +14,7 @@ type Command interface {
 	Execute(string, io.Writer, io.Writer, string, ...string) error
 }
 
-// SealightsHook implements libbuildpack.Hook. It downloads and install the Dynatrace OneAgent.
+// SealightsHook implements libbuildpack.Hook
 type SealightsHook struct {
 	libbuildpack.DefaultHook
 	Log     *libbuildpack.Logger
@@ -29,7 +29,6 @@ func NewHook() libbuildpack.Hook {
 	}
 }
 
-// AfterCompile downloads and installs the Dynatrace agent.
 func (h *SealightsHook) AfterCompile(stager *libbuildpack.Stager) error {
 
 	h.Log.Debug("Sealights. Check servicec status...")
