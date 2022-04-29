@@ -33,6 +33,8 @@ func NewLauncher(log *libbuildpack.Logger, options *SealightsOptions, agentInsta
 }
 
 func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
+	la.Log.Warning(filepath.Join(stager.BuildDir(), Procfile))
+	la.Log.Warning(filepath.Join(stager.BuildDir(), ManifestFile))
 	if _, err := os.Stat(filepath.Join(stager.BuildDir(), Procfile)); err == nil {
 		la.Log.Info("Sealights. Modify start command in procfile")
 		return la.setApplicationStartInProcfile(stager)
