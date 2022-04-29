@@ -42,7 +42,8 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 
 	parts := strings.SplitAfter(string(releaseYmlContent), "exec ")
 	agent := filepath.Join(la.AgentDir, AgentName)
-	newCmd := parts[0] + fmt.Sprintf("dotnet %s %s", agent, AgentMode) //la.buildCommandLine(parts[1], stager.BuildDir())
+	dotnetPath := filepath.Join(stager.DepDir(), "bin", "dotnet")
+	newCmd := parts[0] + fmt.Sprintf("%s %s %s", dotnetPath, agent, AgentMode) //la.buildCommandLine(parts[1], stager.BuildDir())
 
 	ioutil.WriteFile(releasePath, []byte(newCmd), 0644)
 
