@@ -40,7 +40,7 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 	releaseYmlContent, _ := ioutil.ReadFile(releasePath)
 	la.Log.Warning(string(releaseYmlContent))
 
-	parts := strings.SplitAfter(string(releaseYmlContent), "exec ")
+	parts := strings.SplitAfter(string(releaseYmlContent), "&& ")
 	agent := filepath.Join(la.AgentDir, AgentName)
 	dotnetPath := filepath.Join(stager.DepDir(), "bin", "dotnet")
 	newCmd := parts[0] + fmt.Sprintf("%s %s %s", dotnetPath, agent, AgentMode) //la.buildCommandLine(parts[1], stager.BuildDir())
