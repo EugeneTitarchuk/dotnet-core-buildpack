@@ -32,8 +32,8 @@ func NewLauncher(log *libbuildpack.Logger, options *SealightsOptions, agentInsta
 }
 
 func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
-	la.Log.Warning(filepath.Join(stager.BuildDir(), Procfile))
-	la.Log.Warning(filepath.Join(stager.BuildDir(), ManifestFile))
+	// la.Log.Warning(filepath.Join(stager.BuildDir(), Procfile))
+	// la.Log.Warning(filepath.Join(stager.BuildDir(), ManifestFile))
 
 	// filepath.Walk(stager.BuildDir(), func(name string, info os.FileInfo, err error) error {
 	// 	if (string.){
@@ -43,15 +43,10 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 	// 	return nil
 	// })
 
-	stagingYml := filepath.Clean(filepath.Join(stager.BuildDir(), "Procfile"))
+	stagingYml := filepath.Clean(filepath.Join(stager.BuildDir(), "dotnet-core-buildpack-release-step.yml"))
 	la.Log.Warning(stagingYml)
 	stagingYmlContent, _ := ioutil.ReadFile(stagingYml)
 	la.Log.Warning(string(stagingYmlContent))
-
-	a := filepath.Clean(filepath.Join(stager.BuildDir(), "manifest.yml"))
-	la.Log.Warning(a)
-	b, _ := ioutil.ReadFile(a)
-	la.Log.Warning(string(b))
 
 	// stagingYml := filepath.Clean(filepath.Join(stager.BuildDir(), "..", "staging_info.yml"))
 	// la.Log.Warning(stagingYml)
