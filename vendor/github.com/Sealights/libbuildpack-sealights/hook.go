@@ -3,6 +3,7 @@ package sealights
 import (
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/cloudfoundry/libbuildpack"
 )
@@ -31,18 +32,25 @@ func NewHook() libbuildpack.Hook {
 // AfterCompile downloads and installs the Dynatrace agent.
 func (h *SealightsHook) AfterCompile(stager *libbuildpack.Stager) error {
 
-	h.Log.Info("Sealights. Check servicec status...")
+	h.Log.Debug("Sealights. Check servicec status...")
 
 	conf := NewConfiguration(h.Log)
 	if !conf.UseSealights() {
-		h.Log.Info("Sealights service isn't configured")
+		h.Log.Debug("Sealights service isn't configured")
 		return nil
 	}
 
 	h.Log.Info("Sealights. Service enabled")
 
-	installer := NewInstaller(stager, h.Log, conf.Value)
-	installer.InstallAgent()
+	installationPath := filepath.Join(stager.DepDir(), "sealights")
+	installer := NewInstaller(h.Log, conf.Value)
+	err := installer.InstallAgent(installationPath)
+	if (err != nil){
+		return err
+	}
+
+	launcher := NewLauncher(h.Log, conf.Value, installationPath)
+	launcher.ModifyStartParameters(stager)
 
 	// Get buildpack version and language
 

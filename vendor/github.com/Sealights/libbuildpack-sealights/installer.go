@@ -12,24 +12,28 @@ import (
 	"github.com/cloudfoundry/libbuildpack"
 )
 
+const PackageArchiveName = "sealights-agent.tar.gz"
+const DefaultLabId = "agents"
+const DefaultVersion = "latest"
+
 type Installer struct {
 	Log                *libbuildpack.Logger
 	Options            *SealightsOptions
-	Stager             *libbuildpack.Stager
 	MaxDownloadRetries int
 }
 
-func NewInstaller(stager *libbuildpack.Stager, log *libbuildpack.Logger, options *SealightsOptions) *Installer {
-	return &Installer{Log: log, Options: options, Stager: stager, MaxDownloadRetries: 3}
+func NewInstaller(log *libbuildpack.Logger, options *SealightsOptions) *Installer {
+	return &Installer{Log: log, Options: options, MaxDownloadRetries: 3}
 }
 
-func (inst *Installer) InstallAgent() error {
-	err := inst.downloadPackage()
+func (inst *Installer) InstallAgent(installationPath string) error {
+	archivePath, err := inst.downloadPackage()
 	if err != nil {
 		return err
 	}
 
-	err = inst.extractPackage()
+	
+	err = libbuildpack.ExtractTarGz(archivePath, installationPath)
 	if err != nil {
 		return err
 	}
@@ -37,37 +41,30 @@ func (inst *Installer) InstallAgent() error {
 	return nil
 }
 
-func (inst *Installer) downloadPackage() error {
+func (inst *Installer) downloadPackage() (string, error) {
 	url := inst.getDownloadUrl()
 
 	inst.Log.Info("Sealights. Download package started. From '%s'", url)
 
-	tempAgentFile := filepath.Join(os.TempDir(), "sealights-agent.tar.gz")
+	tempAgentFile := filepath.Join(os.TempDir(), PackageArchiveName)
 	err := downloadFileWithRetry(url, tempAgentFile, inst.MaxDownloadRetries)
 	if err != nil {
 		inst.Log.Error("Sealights. Failed to download package.")
-		return err
+		return "", err
 	}
 
 	inst.Log.Info("Sealights. Download finished.")
-	return nil
+	return tempAgentFile, nil
 }
 
-func (inst *Installer) extractPackage() error {
-	path, _ := libbuildpack.GetBuildpackDir()
-	inst.Log.Info("GetBuildpackDir: '%s'", path)
+func (inst *Installer) extractPackage(source string, target string) error {
+	err := libbuildpack.ExtractTarGz(source, target)
+	if err != nil {
+		inst.Log.Error("Sealights. Failed to extract package.")
+		return err
+	}
 
-	path = inst.Stager.BuildDir()
-	inst.Log.Info("Stager.BuildDir: '%s'", path)
-
-	path = inst.Stager.CacheDir()
-	inst.Log.Info("Stager.CacheDir: '%s'", path)
-
-	path = inst.Stager.DepDir()
-	inst.Log.Info("Stager.DepDir: '%s'", path)
-
-	path = inst.Stager.DepsDir()
-	inst.Log.Info("Stager.DepsDir: '%s'", path)
+	inst.Log.Info("Sealights. Package installed.")
 	return nil
 }
 
@@ -76,12 +73,12 @@ func (inst *Installer) getDownloadUrl() string {
 		return inst.Options.CustomAgentUrl
 	}
 
-	labId := "agents"
+	labId := DefaultLabId
 	if inst.Options.LabId != "" {
 		labId = inst.Options.LabId
 	}
 
-	version := "latest"
+	version := DefaultVersion
 	if inst.Options.Version != "" {
 		version = inst.Options.Version
 	}
