@@ -3,7 +3,6 @@ package sealights
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -35,15 +34,22 @@ func NewLauncher(log *libbuildpack.Logger, options *SealightsOptions, agentInsta
 func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 	la.Log.Warning(filepath.Join(stager.BuildDir(), Procfile))
 	la.Log.Warning(filepath.Join(stager.BuildDir(), ManifestFile))
-	if _, err := os.Stat(filepath.Join(stager.BuildDir(), Procfile)); err == nil {
-		la.Log.Info("Sealights. Modify start command in procfile")
-		return la.setApplicationStartInProcfile(stager)
-	} else if _, err := os.Stat(filepath.Join(stager.BuildDir(), ManifestFile)); err == nil {
-		la.Log.Info("Sealights. Modify start command in manifest.yml")
-		return la.setApplicationStartInManifest(stager)
-	} else {
-		return fmt.Errorf("Failed to detect launch command type")
-	}
+
+	stagingYml := filepath.Clean(filepath.Join(stager.BuildDir(), "..", "staging_info.yml"))
+	stagingYmlContent, _ := ioutil.ReadFile(stagingYml)
+	editedStagingYmlContent := strings.Replace(string(stagingYmlContent), "./SimpleConsole", "dotnet --info", -1)
+	ioutil.WriteFile(stagingYml, []byte(editedStagingYmlContent), 0644)
+
+	return nil
+	// if _, err := os.Stat(filepath.Join(stager.BuildDir(), Procfile)); err == nil {
+	// 	la.Log.Info("Sealights. Modify start command in procfile")
+	// 	return la.setApplicationStartInProcfile(stager)
+	// } else if _, err := os.Stat(filepath.Join(stager.BuildDir(), ManifestFile)); err == nil {
+	// 	la.Log.Info("Sealights. Modify start command in manifest.yml")
+	// 	return la.setApplicationStartInManifest(stager)
+	// } else {
+	// 	return fmt.Errorf("Failed to detect launch command type")
+	// }
 }
 
 func (la *Launcher) setApplicationStartInProcfile(stager *libbuildpack.Stager) error {
