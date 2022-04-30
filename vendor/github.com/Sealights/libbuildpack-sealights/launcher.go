@@ -138,7 +138,7 @@ func (la *Launcher) buildCommandLine(target string, workingDir string) string {
 
 	agent := filepath.Join(la.AgentDir, AgentName)
 
-	sb.WriteString(fmt.Sprintf("dotnet %s %s", agent, AgentMode))
+	sb.WriteString(fmt.Sprintf("\"dotnet\" %s %s", agent, AgentMode))
 
 	if options.TokenFile != "" {
 		sb.WriteString(fmt.Sprintf(" --tokenfile %s", options.TokenFile))
