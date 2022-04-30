@@ -32,7 +32,8 @@ func (inst *Installer) InstallAgent(installationPath string) error {
 		return err
 	}
 
-	err = inst.extractPackage(archivePath, installationPath)
+	
+	err = libbuildpack.ExtractTarGz(archivePath, installationPath)
 	if err != nil {
 		return err
 	}
