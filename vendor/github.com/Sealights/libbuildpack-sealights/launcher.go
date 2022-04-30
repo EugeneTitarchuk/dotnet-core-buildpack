@@ -36,13 +36,15 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 
 	// expected file format:
 	// default_process_types:\n web: cd ${DEPS_DIR}/0/dotnet_publish && exec ./app --server.urls http://0.0.0.0:${PORT}
+	// or
+	// default_process_types:\n web: cd ${DEPS_DIR}/0/dotnet_publish && exec dotnet ./app.dll --server.urls http://0.0.0.0:${PORT}
 
 	releaseYmlContent, _ := ioutil.ReadFile(releasePath)
 	la.Log.Warning(string(releaseYmlContent))
 
 	parts := strings.SplitAfter(string(releaseYmlContent), "exec ")
-	agent := filepath.Join(".", "sealights", AgentName)
-	newCmd := parts[0] + fmt.Sprintf("dotnet %s %s", agent, AgentMode) //la.buildCommandLine(parts[1], stager.BuildDir())
+
+	newCmd := parts[0] + la.buildCommandLine(parts[1], stager.BuildDir())
 
 	ioutil.WriteFile(releasePath, []byte(newCmd), 0644)
 
@@ -135,10 +137,10 @@ func (la *Launcher) buildCommandLine(target string, workingDir string) string {
 
 	var sb strings.Builder
 	options := la.Options
+	agent := filepath.Join(".", "sealights", AgentName)
+	//agent := filepath.Join(la.AgentDir, AgentName)
 
-	agent := filepath.Join(la.AgentDir, AgentName)
-
-	sb.WriteString(fmt.Sprintf("\"dotnet\" %s %s", agent, AgentMode))
+	sb.WriteString(fmt.Sprintf("dotnet %s %s", agent, AgentMode))
 
 	if options.TokenFile != "" {
 		sb.WriteString(fmt.Sprintf(" --tokenfile %s", options.TokenFile))
