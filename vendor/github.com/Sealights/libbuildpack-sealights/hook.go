@@ -41,7 +41,7 @@ func (h *SealightsHook) AfterCompile(stager *libbuildpack.Stager) error {
 
 	h.Log.Info("Sealights. Service enabled")
 
-	installationPath := filepath.Join("sealights", "agent")
+	installationPath := filepath.Join(stager.BuildDir(), "sealights")
 	installer := NewInstaller(h.Log, conf.Value)
 	err := installer.InstallAgent(installationPath)
 	if err != nil {
