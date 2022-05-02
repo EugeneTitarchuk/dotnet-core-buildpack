@@ -70,8 +70,10 @@ func (h *SealightsHook) AfterCompile(stager *libbuildpack.Stager) error {
 
 	depinstaller := libbuildpack.NewInstaller(manifest)
 
+	ver, err := libbuildpack.FindMatchingVersion("6.0.x", manifest.AllDependencyVersions("dotnet-runtime"))
+
 	if err = depinstaller.InstallDependency(
-		libbuildpack.Dependency{Name: "dotnet-runtime", Version: "6.0"},
+		libbuildpack.Dependency{Name: "dotnet-runtime", Version: ver},
 		filepath.Join(stager.DepDir(), "dotnet-sdk"),
 	); err != nil {
 		h.Log.Info("Sealights. failed to install dotnet")
