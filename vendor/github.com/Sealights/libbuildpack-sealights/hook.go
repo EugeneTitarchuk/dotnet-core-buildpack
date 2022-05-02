@@ -79,6 +79,8 @@ func (h *SealightsHook) AfterCompile(stager *libbuildpack.Stager) error {
 		h.Log.Info("Sealights. failed to install dotnet")
 		return err
 	}
-
+	if err := stager.AddBinDependencyLink(filepath.Join(stager.DepDir(), "dotnet-sdk", "dotnet"), "dotnet"); err != nil {
+		return err
+	}
 	return nil
 }
