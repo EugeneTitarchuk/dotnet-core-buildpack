@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/cloudfoundry/libbuildpack"
 )
@@ -29,7 +30,25 @@ func NewHook() libbuildpack.Hook {
 	}
 }
 
-// AfterCompile downloads and installs the Dynatrace agent.
+func (h *SealightsHook) BeforeCompile(stager *libbuildpack.Stager) error {
+	buildpackDir, err := libbuildpack.GetBuildpackDir()
+	if err != nil {
+		h.Log.Error("Unable to determine buildpack directory: %s", err.Error())
+		os.Exit(9)
+	}
+
+	manifest, err := libbuildpack.NewManifest(buildpackDir, h.Log, time.Now())
+	if err != nil {
+		h.Log.Error("Unable to load buildpack manifest: %s", err.Error())
+		os.Exit(10)
+	}
+
+	h.Log.Info("%v", manifest.ManifestEntries)
+
+	return nil
+}
+
+// AfterCompile downloads and installs the Sealighs agent.
 func (h *SealightsHook) AfterCompile(stager *libbuildpack.Stager) error {
 
 	h.Log.Debug("Sealights. Check servicec status...")
