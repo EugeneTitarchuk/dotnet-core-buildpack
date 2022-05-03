@@ -71,9 +71,9 @@ func (la *Launcher) buildCommandLine(targetProgram string, targetArgs string) st
 
 	agent := filepath.Join(".", "sealights", AgentName)
 
-	dotnet := filepath.Join(".", "sealights", "dotnet", "dotnet")
+	//dotnet := filepath.Join(".", "sealights", "dotnet", "dotnet")
 
-	sb.WriteString(fmt.Sprintf("%s %s %s", dotnet, agent, AgentMode))
+	sb.WriteString(fmt.Sprintf("./sealights/dotnet/dotnet %s %s", agent, AgentMode))
 
 	if options.TokenFile != "" {
 		sb.WriteString(fmt.Sprintf(" --tokenfile %s", options.TokenFile))
