@@ -70,7 +70,7 @@ func (agi *AgentInstaller) InstallDependency(dependencyPath string) error {
 	}
 
 	runtimeVersions := manifest.AllDependencyVersions("dotnet-runtime")
-	runtimeVersion, _ := libbuildpack.FindMatchingVersion("6.0.2x", runtimeVersions)
+	runtimeVersion, _ := libbuildpack.FindMatchingVersion("6.0.x", runtimeVersions)
 	if runtimeVersion == "" {
 		runtimeVersion = "6.0.202"
 	}
