@@ -13,18 +13,28 @@ type VcapServicesModel struct {
 }
 
 type SealightsOptions struct {
-	Version          string
-	Token            string
-	TokenFile        string
-	BsId             string
-	BsIdFile         string
-	Target           string
-	WorkingDir       string
-	TargetArgs       string
-	ProfilerLogDir   string
-	ProfilerLogLevel string
-	CustomAgentUrl   string
-	LabId            string
+	Version                 string
+	Token                   string
+	TokenFile               string
+	BsId                    string
+	BsIdFile                string
+	Target                  string
+	WorkingDir              string
+	TargetArgs              string
+	ProfilerLogDir          string
+	ProfilerLogLevel        string
+	CustomAgentUrl          string
+	LabId                   string
+	Proxy                   string
+	ProxyUsername           string
+	ProxyPassword           string
+	CollectorLogEnabled     bool
+	CollectorLogAppendFile  bool
+	CollectorLogFilename    string
+	IgnoreCertificateErrors bool
+	Tools                   string
+	Tags                    string
+	NotCli                  bool
 }
 
 type Configuration struct {
