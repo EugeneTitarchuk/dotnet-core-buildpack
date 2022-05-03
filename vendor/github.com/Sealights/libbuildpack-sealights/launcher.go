@@ -56,6 +56,10 @@ func (la *Launcher) updateStartCommand(originalCommand string) string {
 	if strings.HasPrefix(command, "dotnet") {
 		target = "dotnet"
 		command = strings.TrimPrefix(command, "dotnet")
+	} else {
+		commandParts := strings.SplitAfterN(command, " ", 2)
+		target = commandParts[0]
+		command = commandParts[1]
 	}
 
 	newCmd := parts[0] + la.buildCommandLine(target, command)
@@ -130,7 +134,7 @@ func (la *Launcher) buildCommandLine(targetProgram string, targetArgs string) st
 	}
 
 	sb.WriteString(" --workingDir ${PWD}")
-	sb.WriteString(fmt.Sprintf(" --target exec --targetArgs \"--help\""))
+	sb.WriteString(fmt.Sprintf(" --target \"%s\" --targetArgs \"%s\"", targetProgram, targetArgs))
 
 	return sb.String()
 }
