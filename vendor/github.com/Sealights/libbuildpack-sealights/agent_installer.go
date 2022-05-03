@@ -56,9 +56,9 @@ func (agi *AgentInstaller) InstallDependency(dependencyPath string) error {
 	depinstaller := libbuildpack.NewInstaller(manifest)
 
 	sdkVersions := manifest.AllDependencyVersions("dotnet-sdk")
-	sdkVersion, _ := libbuildpack.FindMatchingVersion("6.0.x", sdkVersions)
+	sdkVersion, _ := libbuildpack.FindMatchingVersion("6.0.2x", sdkVersions)
 	if sdkVersion == "" {
-		sdkVersion = "6.0.3"
+		sdkVersion = "6.0.202"
 	}
 
 	if err = depinstaller.InstallDependency(
@@ -70,9 +70,9 @@ func (agi *AgentInstaller) InstallDependency(dependencyPath string) error {
 	}
 
 	runtimeVersions := manifest.AllDependencyVersions("dotnet-runtime")
-	runtimeVersion, _ := libbuildpack.FindMatchingVersion("6.0.x", runtimeVersions)
+	runtimeVersion, _ := libbuildpack.FindMatchingVersion("6.0.2x", runtimeVersions)
 	if runtimeVersion == "" {
-		runtimeVersion = "6.0.3"
+		runtimeVersion = "6.0.202"
 	}
 
 	if err = depinstaller.InstallDependency(
