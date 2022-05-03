@@ -90,7 +90,7 @@ func (la *Launcher) buildCommandLine(targetProgram string, targetArgs string) st
 	if options.TokenFile != "" {
 		sb.WriteString(fmt.Sprintf(" --tokenfile %s", options.TokenFile))
 	} else {
-		sb.WriteString(fmt.Sprintf(" --token %s", options.Token))
+		sb.WriteString(fmt.Sprintf(" --token \"%s\"", options.Token))
 	}
 
 	if options.BsIdFile != "" {
@@ -134,7 +134,7 @@ func (la *Launcher) buildCommandLine(targetProgram string, targetArgs string) st
 	}
 
 	sb.WriteString(" --workingDir ${PWD}")
-	sb.WriteString(fmt.Sprintf(" --target \"%s\" --targetArgs \"%s\"", targetProgram, targetArgs))
+	sb.WriteString(fmt.Sprintf(" --target %s --targetArgs \"%s\"", targetProgram, targetArgs))
 
 	return sb.String()
 }
