@@ -69,6 +69,14 @@ func (la *Launcher) buildCommandLine(targetProgram string, targetArgs string) st
 	var sb strings.Builder
 	options := la.Options
 
+	// dotnet app.dll
+	// target dotnet args="app.dll"
+
+	// exec ./app
+	// target ??
+
+	// app
+
 	//agent := filepath.Join(".", "sealights", AgentName)
 
 	//dotnet := filepath.Join(".", "sealights", "dotnet", "dotnet")
@@ -122,7 +130,7 @@ func (la *Launcher) buildCommandLine(targetProgram string, targetArgs string) st
 	}
 
 	sb.WriteString(" --workingDir ${PWD}")
-	sb.WriteString(fmt.Sprintf(" --target %s --targetArgs \"%s\"", targetProgram, targetArgs))
+	sb.WriteString(fmt.Sprintf(" --target exec --targetArgs \"--help\""))
 
 	return sb.String()
 }
