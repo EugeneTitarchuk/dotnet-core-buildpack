@@ -73,7 +73,7 @@ func (la *Launcher) buildCommandLine(targetProgram string, targetArgs string) st
 
 	//dotnet := filepath.Join(".", "sealights", "dotnet", "dotnet")
 
-	sb.WriteString(fmt.Sprintf("${HOME}/app/sealights/dotnet/dotnet %s %s", agent, AgentMode))
+	sb.WriteString(fmt.Sprintf("${HOME}/sealights/dotnet/dotnet %s %s", agent, AgentMode))
 
 	if options.TokenFile != "" {
 		sb.WriteString(fmt.Sprintf(" --tokenfile %s", options.TokenFile))
