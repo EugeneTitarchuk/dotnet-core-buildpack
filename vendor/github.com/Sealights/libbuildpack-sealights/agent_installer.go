@@ -76,7 +76,7 @@ func (agi *AgentInstaller) InstallDependency(dependencyPath string) error {
 	}
 
 	if err = depinstaller.InstallDependency(
-		libbuildpack.Dependency{Name: "dotnet-sdk", Version: runtimeVersion},
+		libbuildpack.Dependency{Name: "dotnet-runtime", Version: runtimeVersion},
 		dependencyPath,
 	); err != nil {
 		agi.Log.Info("Sealights. failed to install dotnet runtime")
