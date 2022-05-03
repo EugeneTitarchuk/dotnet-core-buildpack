@@ -39,7 +39,8 @@ func (h *SealightsHook) AfterCompile(stager *libbuildpack.Stager) error {
 		h.Log.Debug("Sealights service isn't configured")
 		return nil
 	}
-
+	h.Log.Warning(stager.BuildDir())
+	h.Log.Warning(stager.DepDir())
 	h.Log.Info("Sealights. Service enabled")
 
 	installationPath := filepath.Join(stager.BuildDir(), "sealights")
