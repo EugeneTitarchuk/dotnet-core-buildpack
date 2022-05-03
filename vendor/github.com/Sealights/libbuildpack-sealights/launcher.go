@@ -67,62 +67,63 @@ func (la *Launcher) updateStartCommand(originalCommand string) string {
 func (la *Launcher) buildCommandLine(targetProgram string, targetArgs string) string {
 
 	var sb strings.Builder
-	options := la.Options
+	//	options := la.Options
 
 	//agent := filepath.Join(".", "sealights", AgentName)
 
 	//dotnet := filepath.Join(".", "sealights", "dotnet", "dotnet")
 
-	sb.WriteString(fmt.Sprintf("${HOME}/sealights/dotnet/dotnet ${HOME}/sealights/%s %s", AgentName, AgentMode))
+	//sb.WriteString(fmt.Sprintf("${HOME}/sealights/dotnet/dotnet ${HOME}/sealights/%s %s", AgentName, AgentMode))
+	sb.WriteString("${HOME}/sealights/dotnet/dotnet --info")
 
-	if options.TokenFile != "" {
-		sb.WriteString(fmt.Sprintf(" --tokenfile %s", options.TokenFile))
-	} else {
-		sb.WriteString(fmt.Sprintf(" --token %s", options.Token))
-	}
+	// if options.TokenFile != "" {
+	// 	sb.WriteString(fmt.Sprintf(" --tokenfile %s", options.TokenFile))
+	// } else {
+	// 	sb.WriteString(fmt.Sprintf(" --token %s", options.Token))
+	// }
 
-	if options.BsIdFile != "" {
-		sb.WriteString(fmt.Sprintf(" --buildSessionIdFile %s", options.BsIdFile))
-	} else {
-		sb.WriteString(fmt.Sprintf(" --buildSessionId %s", options.BsId))
-	}
+	// if options.BsIdFile != "" {
+	// 	sb.WriteString(fmt.Sprintf(" --buildSessionIdFile %s", options.BsIdFile))
+	// } else {
+	// 	sb.WriteString(fmt.Sprintf(" --buildSessionId %s", options.BsId))
+	// }
 
-	if options.ProfilerLogDir != "" {
-		sb.WriteString(fmt.Sprintf(" --profilerLogDir %s", options.ProfilerLogDir))
-	}
+	// if options.ProfilerLogDir != "" {
+	// 	sb.WriteString(fmt.Sprintf(" --profilerLogDir %s", options.ProfilerLogDir))
+	// }
 
-	if options.ProfilerLogLevel != "" {
-		sb.WriteString(fmt.Sprintf(" --profilerLogLevel %s", options.ProfilerLogLevel))
-	}
+	// if options.ProfilerLogLevel != "" {
+	// 	sb.WriteString(fmt.Sprintf(" --profilerLogLevel %s", options.ProfilerLogLevel))
+	// }
 
-	if options.Tags != "" {
-		sb.WriteString(fmt.Sprintf(" --tags %s", options.Tags))
-	}
+	// if options.Tags != "" {
+	// 	sb.WriteString(fmt.Sprintf(" --tags %s", options.Tags))
+	// }
 
-	if options.Tools != "" {
-		sb.WriteString(fmt.Sprintf(" --tools %s", options.Tools))
-	}
+	// if options.Tools != "" {
+	// 	sb.WriteString(fmt.Sprintf(" --tools %s", options.Tools))
+	// }
 
-	if options.IgnoreCertificateErrors {
-		sb.WriteString(" --ignoreCertificateErrors true")
-	}
+	// if options.IgnoreCertificateErrors {
+	// 	sb.WriteString(" --ignoreCertificateErrors true")
+	// }
 
-	if options.NotCli {
-		sb.WriteString(" --notCli true")
-	}
+	// if options.NotCli {
+	// 	sb.WriteString(" --notCli true")
+	// }
 
-	if options.Proxy != "" {
-		sb.WriteString(fmt.Sprintf(" --proxy %s", options.Proxy))
-		sb.WriteString(fmt.Sprintf(" --proxyUsername %s", options.ProxyUsername))
-		sb.WriteString(fmt.Sprintf(" --proxyPassword %s", options.ProxyPassword))
-	}
+	// if options.Proxy != "" {
+	// 	sb.WriteString(fmt.Sprintf(" --proxy %s", options.Proxy))
+	// 	sb.WriteString(fmt.Sprintf(" --proxyUsername %s", options.ProxyUsername))
+	// 	sb.WriteString(fmt.Sprintf(" --proxyPassword %s", options.ProxyPassword))
+	// }
 
-	if options.CollectorLogFilename != "" {
-		sb.WriteString(fmt.Sprintf(" --logFilename %s", options.CollectorLogFilename))
-	}
+	// if options.CollectorLogFilename != "" {
+	// 	sb.WriteString(fmt.Sprintf(" --logFilename %s", options.CollectorLogFilename))
+	// }
 
-	sb.WriteString(" --workingDir ${PWD}")
-	sb.WriteString(fmt.Sprintf(" --target %s --targetArgs \"%s\"", targetProgram, targetArgs))
+	// sb.WriteString(" --workingDir ${PWD}")
+	// sb.WriteString(fmt.Sprintf(" --target %s --targetArgs \"%s\"", targetProgram, targetArgs))
 
 	return sb.String()
 }
