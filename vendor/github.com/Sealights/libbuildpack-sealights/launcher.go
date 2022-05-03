@@ -134,7 +134,7 @@ func (la *Launcher) buildCommandLine(targetProgram string, targetArgs string) st
 	}
 
 	sb.WriteString(" --workingDir ${PWD}")
-	sb.WriteString(fmt.Sprintf(" --target %s --targetArgs \"%s\"", targetProgram, targetArgs))
+	sb.WriteString(fmt.Sprintf(" --target %s --targetArgs \"%s\"", targetProgram, "test"))
 
 	return sb.String()
 }
