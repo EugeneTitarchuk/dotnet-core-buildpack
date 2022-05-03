@@ -53,10 +53,16 @@ func (agi *AgentInstaller) InstallDependency(dependencyPath string) error {
 		os.Exit(10)
 	}
 
+	versions := manifest.AllDependencyVersions("dotnet-sdk")
+	version, _ := libbuildpack.FindMatchingVersion("6.0.x", versions)
+	if version == "" {
+		version = "6.0.3"
+	}
+
 	depinstaller := libbuildpack.NewInstaller(manifest)
 
 	if err = depinstaller.InstallDependency(
-		libbuildpack.Dependency{Name: "dotnet-runtime", Version: "6.0.4"},
+		libbuildpack.Dependency{Name: "dotnet-sdk", Version: version},
 		dependencyPath,
 	); err != nil {
 		agi.Log.Info("Sealights. failed to install dotnet")
