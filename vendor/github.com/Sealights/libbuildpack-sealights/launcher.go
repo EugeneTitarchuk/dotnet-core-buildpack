@@ -159,6 +159,7 @@ func (la *Launcher) getTargetArgs(command string) (target string, args string) {
 		// use dotnet as target and remove it from command
 		target = "dotnet"
 		command = strings.TrimPrefix(command, "dotnet")
+		command = strings.TrimPrefix(command, " ")
 	} else {
 		// use dotnet from sealights folder
 		target = filepath.Join(la.DotNetDir, "dotnet")
