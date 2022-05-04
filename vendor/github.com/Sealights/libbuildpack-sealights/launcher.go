@@ -52,20 +52,14 @@ func (la *Launcher) updateStartCommand(originalCommand string) string {
 	// cd ${DEPS_DIR}/0/dotnet_publish && exec dotnet ./app.dll --server.urls http://0.0.0.0:${PORT}
 
 	parts := strings.SplitAfterN(originalCommand, "exec ", 2)
-	command := parts[1]
-	target := "exec"
-	if strings.HasPrefix(command, "dotnet") {
-		target = "dotnet"
-		command = strings.TrimPrefix(command, "dotnet")
-	}
 
-	newCmd := parts[0] + la.buildCommandLine(target, command)
+	newCmd := parts[0] + la.buildCommandLine(parts[1])
 
 	return newCmd
 }
 
 //dotnet SL.DotNet.dll testListener --logAppendFile true --logFilename /tmp/collector.log --tokenFile /tmp/sltoken.txt --buildSessionIdFile /tmp/buildsessionid.txt --target dotnet --workingDir /tmp/app --profilerLogDir /tmp/ --profilerLogLevel 7 --targetArgs \"test app.dll\"
-func (la *Launcher) buildCommandLine(targetProgram string, targetArgs string) string {
+func (la *Launcher) buildCommandLine(command string) string {
 
 	var sb strings.Builder
 	options := la.Options
@@ -125,15 +119,34 @@ func (la *Launcher) buildCommandLine(targetProgram string, targetArgs string) st
 	sb.WriteString(" --workingDir ${PWD}")
 
 	if agentMode == DefaultAgentMode {
-		targetProgram = dotnetCli
-		targetArgs = fmt.Sprintf("test %s %s", targetProgram, targetArgs)
+		target, args := la.getTargetArgs(command)
+		sb.WriteString(fmt.Sprintf(" --target %s --targetArgs \"%s\"", target, args))
 	}
-
-	if (strings.HasPrefix(targetArgs, "--")){
-		targetArgs = fmt.Sprintf(" %s", targetArgs)
-	}
-
-	sb.WriteString(fmt.Sprintf(" --target %s --targetArgs \"%s\"", targetProgram, targetArgs))
 
 	return sb.String()
+}
+
+func (la *Launcher) getTargetArgs(command string) (target string, args string) {
+	if strings.HasPrefix(command, "dotnet") {
+		target = "dotnet"
+		app := strings.TrimPrefix(command, "dotnet")
+		args = fmt.Sprintf("test %s", app)
+	} else {
+		target = filepath.Join(la.DotNetDir, "dotnet")
+		args = fmt.Sprintf("test %s", command)
+	}
+
+	if la.Options.Target != "" {
+		target = la.Options.Target
+	}
+
+	if la.Options.TargetArgs != "" {
+		args = la.Options.TargetArgs
+	}
+
+	if strings.HasPrefix(args, "--") {
+		args = fmt.Sprintf(" %s", args)
+	}
+
+	return
 }
