@@ -110,6 +110,34 @@ func (la *Launcher) buildCommandLine(command string) string {
 		sb.WriteString(" --notCli true")
 	}
 
+	if options.AppName != "" {
+		sb.WriteString(fmt.Sprintf(" --appName %s", options.AppName))
+	}
+
+	if options.BranchName != "" {
+		sb.WriteString(fmt.Sprintf(" --branchName %s", options.BranchName))
+	}
+
+	if options.BuildName != "" {
+		sb.WriteString(fmt.Sprintf(" --buildName %s", options.BuildName))
+	}
+
+	if options.IncludeNamespace != "" {
+		sb.WriteString(fmt.Sprintf(" --includeNamespace %s", options.IncludeNamespace))
+	}
+
+	if options.WorkspacePath != "" {
+		sb.WriteString(fmt.Sprintf(" --workspacePath %s", options.WorkspacePath))
+	}
+
+	if options.IgnoreGeneratedCode != "" {
+		sb.WriteString(fmt.Sprintf(" --ignoreGeneratedCode %s", options.IgnoreGeneratedCode))
+	}
+
+	if options.TestStage != "" {
+		sb.WriteString(fmt.Sprintf(" --testStage %s", options.TestStage))
+	}
+
 	if options.Proxy != "" {
 		sb.WriteString(fmt.Sprintf(" --proxy %s", options.Proxy))
 		sb.WriteString(fmt.Sprintf(" --proxyUsername %s", options.ProxyUsername))
@@ -128,13 +156,17 @@ func (la *Launcher) buildCommandLine(command string) string {
 
 func (la *Launcher) getTargetArgs(command string) (target string, args string) {
 	if strings.HasPrefix(command, "dotnet") {
+		// use dotnet as target and remove it from command
 		target = "dotnet"
-		app := strings.TrimPrefix(command, "dotnet")
-		args = fmt.Sprintf("test %s", app)
+		command = strings.TrimPrefix(command, "dotnet")
 	} else {
+		// use dotnet from sealights folder
 		target = filepath.Join(la.DotNetDir, "dotnet")
-		args = fmt.Sprintf("test %s", command)
 	}
+
+	parts := strings.SplitN(command, " ", 2)
+	withoutArguments := parts[0]
+	args = fmt.Sprintf("test %s", withoutArguments)
 
 	if la.Options.Target != "" {
 		target = la.Options.Target

@@ -33,6 +33,13 @@ type SealightsOptions struct {
 	Tools                   string
 	Tags                    string
 	NotCli                  string
+	AppName                 string
+	BranchName              string
+	BuildName               string
+	IncludeNamespace        string
+	WorkspacePath           string
+	IgnoreGeneratedCode     string
+	TestStage               string
 }
 
 type Configuration struct {
@@ -97,6 +104,13 @@ func (conf *Configuration) parseVcapServices() {
 				Tools:                   queryString("tools"),
 				Tags:                    queryString("tags"),
 				NotCli:                  queryString("notCli"),
+				AppName:                 queryString("appName"),
+				BranchName:              queryString("branchName"),
+				BuildName:               queryString("buildName"),
+				IncludeNamespace:        queryString("includeNamespace"),
+				WorkspacePath:           queryString("workspacePath"),
+				IgnoreGeneratedCode:     queryString("ignoreGeneratedCode"),
+				TestStage:               queryString("testStage"),
 			}
 
 			isTokenProvided := options.Token != "" || options.TokenFile != ""
