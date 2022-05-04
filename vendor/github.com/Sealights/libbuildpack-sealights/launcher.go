@@ -9,16 +9,17 @@ import (
 )
 
 const AgentName = "SL.DotNet.dll"
-const AgentMode = "testListener"
+const DefaultAgentMode = "testListener"
 
 type Launcher struct {
-	Log      *libbuildpack.Logger
-	Options  *SealightsOptions
-	AgentDir string
+	Log       *libbuildpack.Logger
+	Options   *SealightsOptions
+	AgentDir  string
+	DotNetDir string
 }
 
-func NewLauncher(log *libbuildpack.Logger, options *SealightsOptions, agentInstallationDir string) *Launcher {
-	return &Launcher{Log: log, Options: options, AgentDir: agentInstallationDir}
+func NewLauncher(log *libbuildpack.Logger, options *SealightsOptions, agentInstallationDir string, dotnetInstallationDir string) *Launcher {
+	return &Launcher{Log: log, Options: options, AgentDir: agentInstallationDir, DotNetDir: dotnetInstallationDir}
 }
 
 func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
@@ -56,10 +57,6 @@ func (la *Launcher) updateStartCommand(originalCommand string) string {
 	if strings.HasPrefix(command, "dotnet") {
 		target = "dotnet"
 		command = strings.TrimPrefix(command, "dotnet")
-	} else {
-		commandParts := strings.SplitAfterN(command, " ", 2)
-		target = commandParts[0]
-		command = commandParts[1]
 	}
 
 	newCmd := parts[0] + la.buildCommandLine(target, command)
@@ -67,30 +64,26 @@ func (la *Launcher) updateStartCommand(originalCommand string) string {
 	return newCmd
 }
 
-//SL.DotNet.dll testListener --logAppendFile true --logFilename /tmp/collector.log --tokenFile /tmp/sltoken.txt --buildSessionIdFile /tmp/buildsessionid.txt --target dotnet --workingDir /tmp/app --profilerLogDir /tmp/ --profilerLogLevel 7 --targetArgs \"test app.dll\"
+//dotnet SL.DotNet.dll testListener --logAppendFile true --logFilename /tmp/collector.log --tokenFile /tmp/sltoken.txt --buildSessionIdFile /tmp/buildsessionid.txt --target dotnet --workingDir /tmp/app --profilerLogDir /tmp/ --profilerLogLevel 7 --targetArgs \"test app.dll\"
 func (la *Launcher) buildCommandLine(targetProgram string, targetArgs string) string {
 
 	var sb strings.Builder
 	options := la.Options
 
-	// dotnet app.dll
-	// target dotnet args="app.dll"
+	agent := filepath.Join(la.AgentDir, AgentName)
+	dotnetCli := filepath.Join(la.DotNetDir, "dotnet")
 
-	// exec ./app
-	// target ??
+	agentMode := DefaultAgentMode
+	if options.Mode != "" {
+		agentMode = options.Mode
+	}
 
-	// app
-
-	//agent := filepath.Join(".", "sealights", AgentName)
-
-	//dotnet := filepath.Join(".", "sealights", "dotnet", "dotnet")
-
-	sb.WriteString(fmt.Sprintf("${HOME}/sealights/dotnet/dotnet ${HOME}/sealights/%s %s", AgentName, AgentMode))
+	sb.WriteString(fmt.Sprintf("%s %s %s", dotnetCli, agent, agentMode))
 
 	if options.TokenFile != "" {
 		sb.WriteString(fmt.Sprintf(" --tokenfile %s", options.TokenFile))
 	} else {
-		sb.WriteString(fmt.Sprintf(" --token \"%s\"", options.Token))
+		sb.WriteString(fmt.Sprintf(" --token %s", options.Token))
 	}
 
 	if options.BsIdFile != "" {
@@ -115,11 +108,11 @@ func (la *Launcher) buildCommandLine(targetProgram string, targetArgs string) st
 		sb.WriteString(fmt.Sprintf(" --tools %s", options.Tools))
 	}
 
-	if options.IgnoreCertificateErrors {
+	if options.IgnoreCertificateErrors == "true" {
 		sb.WriteString(" --ignoreCertificateErrors true")
 	}
 
-	if options.NotCli {
+	if options.NotCli == "true" {
 		sb.WriteString(" --notCli true")
 	}
 
@@ -129,12 +122,18 @@ func (la *Launcher) buildCommandLine(targetProgram string, targetArgs string) st
 		sb.WriteString(fmt.Sprintf(" --proxyPassword %s", options.ProxyPassword))
 	}
 
-	if options.CollectorLogFilename != "" {
-		sb.WriteString(fmt.Sprintf(" --logFilename %s", options.CollectorLogFilename))
+	sb.WriteString(" --workingDir ${PWD}")
+
+	if agentMode == DefaultAgentMode {
+		targetProgram = dotnetCli
+		targetArgs = fmt.Sprintf("test %s %s", targetProgram, targetArgs)
 	}
 
-	sb.WriteString(" --workingDir ${PWD}")
-	sb.WriteString(fmt.Sprintf(" --target %s --targetArgs \"%s\"", targetProgram, " --server.urls http://0.0.0.0:${PORT}"))
+	if (strings.HasPrefix(targetArgs, "--")){
+		targetArgs = fmt.Sprintf(" %s", targetArgs)
+	}
+
+	sb.WriteString(fmt.Sprintf(" --target %s --targetArgs \"%s\"", targetProgram, targetArgs))
 
 	return sb.String()
 }

@@ -14,6 +14,7 @@ type VcapServicesModel struct {
 
 type SealightsOptions struct {
 	Version                 string
+	Mode                    string
 	Token                   string
 	TokenFile               string
 	BsId                    string
@@ -28,13 +29,10 @@ type SealightsOptions struct {
 	Proxy                   string
 	ProxyUsername           string
 	ProxyPassword           string
-	CollectorLogEnabled     bool
-	CollectorLogAppendFile  bool
-	CollectorLogFilename    string
-	IgnoreCertificateErrors bool
+	IgnoreCertificateErrors string
 	Tools                   string
 	Tags                    string
-	NotCli                  bool
+	NotCli                  string
 }
 
 type Configuration struct {
@@ -79,16 +77,26 @@ func (conf *Configuration) parseVcapServices() {
 			}
 
 			options := &SealightsOptions{
-				Version:          queryString("version"),
-				Token:            queryString("token"),
-				TokenFile:        queryString("tokenFile"),
-				BsId:             queryString("bsId"),
-				BsIdFile:         queryString("bsIdFile"),
-				Target:           queryString("target"),
-				WorkingDir:       queryString("workingDir"),
-				TargetArgs:       queryString("targetArgs"),
-				ProfilerLogDir:   queryString("profilerLogDir"),
-				ProfilerLogLevel: queryString("profilerLogLevel"),
+				Version:                 queryString("version"),
+				Mode:                    queryString("mode"), // default value is 'testListener'
+				Token:                   queryString("token"),
+				TokenFile:               queryString("tokenFile"),
+				BsId:                    queryString("bsId"),
+				BsIdFile:                queryString("bsIdFile"),
+				Target:                  queryString("target"),
+				WorkingDir:              queryString("workingDir"),
+				TargetArgs:              queryString("targetArgs"),
+				ProfilerLogDir:          queryString("profilerLogDir"),
+				ProfilerLogLevel:        queryString("profilerLogLevel"),
+				CustomAgentUrl:          queryString("customAgentUrl"),
+				LabId:                   queryString("labId"),
+				Proxy:                   queryString("proxy"),
+				ProxyUsername:           queryString("proxyUsername"),
+				ProxyPassword:           queryString("proxyPassword"),
+				IgnoreCertificateErrors: queryString("ignoreCertificateErrors"),
+				Tools:                   queryString("tools"),
+				Tags:                    queryString("tags"),
+				NotCli:                  queryString("notCli"),
 			}
 
 			isTokenProvided := options.Token != "" || options.TokenFile != ""

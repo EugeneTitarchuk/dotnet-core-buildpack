@@ -44,46 +44,51 @@ func (agi *AgentInstaller) InstallDependency(dependencyPath string) error {
 	buildpackDir, err := libbuildpack.GetBuildpackDir()
 	if err != nil {
 		agi.Log.Error("Unable to determine buildpack directory: %s", err.Error())
-		os.Exit(9)
+		return err
 	}
 
 	manifest, err := libbuildpack.NewManifest(buildpackDir, agi.Log, time.Now())
 	if err != nil {
 		agi.Log.Error("Unable to load buildpack manifest: %s", err.Error())
-		os.Exit(10)
+		return err
 	}
 
+	sdkVersion, runtimeVersion := agi.selectDotnetVersions(manifest)
 	depinstaller := libbuildpack.NewInstaller(manifest)
-
-	sdkVersions := manifest.AllDependencyVersions("dotnet-sdk")
-	sdkVersion, _ := libbuildpack.FindMatchingVersion("6.0.2x", sdkVersions)
-	if sdkVersion == "" {
-		sdkVersion = "6.0.202"
-	}
 
 	if err = depinstaller.InstallDependency(
 		libbuildpack.Dependency{Name: "dotnet-sdk", Version: sdkVersion},
 		dependencyPath,
 	); err != nil {
-		agi.Log.Info("Sealights. failed to install dotnet sdk")
+		agi.Log.Error("Sealights. Failed to install dotnet sdk")
 		return err
-	}
-
-	runtimeVersions := manifest.AllDependencyVersions("dotnet-runtime")
-	runtimeVersion, _ := libbuildpack.FindMatchingVersion("6.0.x", runtimeVersions)
-	if runtimeVersion == "" {
-		runtimeVersion = "6.0.202"
 	}
 
 	if err = depinstaller.InstallDependency(
 		libbuildpack.Dependency{Name: "dotnet-runtime", Version: runtimeVersion},
 		dependencyPath,
 	); err != nil {
-		agi.Log.Info("Sealights. failed to install dotnet runtime")
+		agi.Log.Error("Sealights. Failed to install dotnet runtime")
 		return err
 	}
 
 	return nil
+}
+
+func (agi *AgentInstaller) selectDotnetVersions(manifest *libbuildpack.Manifest) (sdkVersion string, runtimeVersion string) {
+	sdkVersions := manifest.AllDependencyVersions("dotnet-sdk")
+	sdkVersion, _ = libbuildpack.FindMatchingVersion("6.0.2x", sdkVersions)
+	if sdkVersion == "" {
+		sdkVersion = "6.0.202"
+	}
+
+	runtimeVersions := manifest.AllDependencyVersions("dotnet-runtime")
+	runtimeVersion, _ = libbuildpack.FindMatchingVersion("6.0.x", runtimeVersions)
+	if runtimeVersion == "" {
+		runtimeVersion = "6.0.3"
+	}
+
+	return
 }
 
 func (agi *AgentInstaller) downloadPackage() (string, error) {

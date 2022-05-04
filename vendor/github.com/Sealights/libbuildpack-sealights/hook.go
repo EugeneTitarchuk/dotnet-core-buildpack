@@ -42,21 +42,22 @@ func (h *SealightsHook) AfterCompile(stager *libbuildpack.Stager) error {
 
 	h.Log.Info("Sealights. Service enabled")
 
-	installationPath := filepath.Join(stager.BuildDir(), "sealights")
+	agentPath := filepath.Join(stager.BuildDir(), "sealights")
 	agentInstaller := NewAgentInstaller(h.Log, conf.Value)
-	err := agentInstaller.InstallAgent(installationPath)
+	err := agentInstaller.InstallAgent(agentPath)
 	if err != nil {
 		return err
 	}
 	h.Log.Info("Sealights. Agent installed")
 
-	err = agentInstaller.InstallDependency(filepath.Join(installationPath, "dotnet"))
+	dependenciesPath := filepath.Join(agentPath, "dotnet-sdk")
+	err = agentInstaller.InstallDependency(dependenciesPath)
 	if err != nil {
 		return err
 	}
 	h.Log.Info("Sealights. Dotnet installed")
 
-	launcher := NewLauncher(h.Log, conf.Value, installationPath)
+	launcher := NewLauncher(h.Log, conf.Value, agentPath, dependenciesPath)
 	launcher.ModifyStartParameters(stager)
 
 	h.Log.Info("Sealights. Service is set up")
