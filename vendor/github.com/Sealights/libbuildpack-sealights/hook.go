@@ -3,7 +3,6 @@ package sealights
 import (
 	"io"
 	"os"
-	"path/filepath"
 
 	"github.com/cloudfoundry/libbuildpack"
 )
@@ -42,22 +41,21 @@ func (h *SealightsHook) AfterCompile(stager *libbuildpack.Stager) error {
 
 	h.Log.Info("Sealights. Service enabled")
 
-	agentPath := filepath.Join(stager.BuildDir(), "sealights")
 	agentInstaller := NewAgentInstaller(h.Log, conf.Value)
-	err := agentInstaller.InstallAgent(agentPath)
+
+	agentDir, err := agentInstaller.InstallAgent(stager)
 	if err != nil {
 		return err
 	}
 	h.Log.Info("Sealights. Agent installed")
 
-	dependenciesPath := filepath.Join(agentPath, "dotnet-sdk")
-	err = agentInstaller.InstallDependency(dependenciesPath)
+	dotnetDir, err := agentInstaller.InstallDependency(stager)
 	if err != nil {
 		return err
 	}
 	h.Log.Info("Sealights. Dotnet installed")
 
-	launcher := NewLauncher(h.Log, conf.Value, agentPath, dependenciesPath)
+	launcher := NewLauncher(h.Log, conf.Value, agentDir, dotnetDir)
 	launcher.ModifyStartParameters(stager)
 
 	h.Log.Info("Sealights. Service is set up")

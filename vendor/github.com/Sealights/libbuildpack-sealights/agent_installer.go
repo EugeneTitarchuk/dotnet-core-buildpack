@@ -15,6 +15,8 @@ import (
 const PackageArchiveName = "sealights-agent.tar.gz"
 const DefaultLabId = "agents"
 const DefaultVersion = "latest"
+const AgentDir = "sealights"
+const DotnetDir = "dotnet-sdk"
 
 type AgentInstaller struct {
 	Log                *libbuildpack.Logger
@@ -26,31 +28,33 @@ func NewAgentInstaller(log *libbuildpack.Logger, options *SealightsOptions) *Age
 	return &AgentInstaller{Log: log, Options: options, MaxDownloadRetries: 3}
 }
 
-func (agi *AgentInstaller) InstallAgent(installationPath string) error {
+func (agi *AgentInstaller) InstallAgent(stager *libbuildpack.Stager) (string, error) {
+	installationPath := filepath.Join(stager.BuildDir(), AgentDir)
 	archivePath, err := agi.downloadPackage()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = agi.extractPackage(archivePath, installationPath)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return filepath.Join("${HOME}", AgentDir), nil
 }
 
-func (agi *AgentInstaller) InstallDependency(dependencyPath string) error {
+func (agi *AgentInstaller) InstallDependency(stager *libbuildpack.Stager) (string, error) {
+	dependencyPath := filepath.Join(stager.BuildDir(), AgentDir, DotnetDir)
 	buildpackDir, err := libbuildpack.GetBuildpackDir()
 	if err != nil {
 		agi.Log.Error("Unable to determine buildpack directory: %s", err.Error())
-		return err
+		return "", err
 	}
 
 	manifest, err := libbuildpack.NewManifest(buildpackDir, agi.Log, time.Now())
 	if err != nil {
 		agi.Log.Error("Unable to load buildpack manifest: %s", err.Error())
-		return err
+		return "", err
 	}
 
 	sdkVersion, runtimeVersion := agi.selectDotnetVersions(manifest)
@@ -61,7 +65,7 @@ func (agi *AgentInstaller) InstallDependency(dependencyPath string) error {
 		dependencyPath,
 	); err != nil {
 		agi.Log.Error("Sealights. Failed to install dotnet sdk")
-		return err
+		return "", err
 	}
 
 	if err = depinstaller.InstallDependency(
@@ -69,10 +73,10 @@ func (agi *AgentInstaller) InstallDependency(dependencyPath string) error {
 		dependencyPath,
 	); err != nil {
 		agi.Log.Error("Sealights. Failed to install dotnet runtime")
-		return err
+		return "", err
 	}
 
-	return nil
+	return filepath.Join("${HOME}", AgentDir, DotnetDir), nil
 }
 
 func (agi *AgentInstaller) selectDotnetVersions(manifest *libbuildpack.Manifest) (sdkVersion string, runtimeVersion string) {
