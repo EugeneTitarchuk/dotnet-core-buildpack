@@ -81,7 +81,7 @@ func (agi *AgentInstaller) InstallDependency(stager *libbuildpack.Stager) (strin
 
 func (agi *AgentInstaller) selectDotnetVersions(manifest *libbuildpack.Manifest) (sdkVersion string, runtimeVersion string) {
 	sdkVersions := manifest.AllDependencyVersions("dotnet-sdk")
-	sdkVersion, _ = libbuildpack.FindMatchingVersion("6.0.2x", sdkVersions)
+	sdkVersion, _ = libbuildpack.FindMatchingVersion("6.0.x", sdkVersions)
 	if sdkVersion == "" {
 		sdkVersion = "6.0.202"
 	}
