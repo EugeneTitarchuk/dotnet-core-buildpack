@@ -89,12 +89,12 @@ func TestIntegration(t *testing.T) {
 
 	suite := spec.New("integration", spec.Report(report.Terminal{}), spec.Parallel())
 	suite("Default", testDefault)
-	suite("Dynatrace", testDynatrace)
-	suite("Fsharp", testFsharp)
-	suite("MultipleProjects", testMultipleProjects)
-	suite("Node", testNode)
-	suite("Override", testOverride)
-	suite("Supply", testSupply)
+	// suite("Dynatrace", testDynatrace)
+	// suite("Fsharp", testFsharp)
+	// suite("MultipleProjects", testMultipleProjects)
+	// suite("Node", testNode)
+	// suite("Override", testOverride)
+	// suite("Supply", testSupply)
 	suite("Sealights", testSealights)
 
 	if cutlass.Cached {

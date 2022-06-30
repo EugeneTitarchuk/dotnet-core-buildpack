@@ -2,7 +2,9 @@ package sealights
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/cloudfoundry/libbuildpack"
@@ -55,11 +57,24 @@ func (la *Launcher) updateStartCommand(originalCommand string) string {
 
 	newCmd := parts[0] + la.buildCommandLine(parts[1])
 
+	testListenerSessionKey, sessionKeyExists := la.Options.SlArguments["testListenerSessionKey"]
+	if sessionKeyExists {
+		exportEnvCmd, err := la.addProfilerConfiguration(la.AgentDir, testListenerSessionKey)
+		if err != nil {
+			la.Log.Error("Sealights. Failed to parse arguments")
+			return originalCommand
+		}
+		newCmd = fmt.Sprintf("%s && %s && %s", newCmd, exportEnvCmd, parts[1])
+	}
+
 	return newCmd
 }
 
 //dotnet SL.DotNet.dll testListener --logAppendFile true --logFilename /tmp/collector.log --tokenFile /tmp/sltoken.txt --buildSessionIdFile /tmp/buildsessionid.txt --target dotnet --workingDir /tmp/app --profilerLogDir /tmp/ --profilerLogLevel 7 --targetArgs \"test app.dll\"
 func (la *Launcher) buildCommandLine(command string) string {
+	if la.Options.CustomCommand != "" {
+		return la.Options.CustomCommand
+	}
 
 	var sb strings.Builder
 	options := la.Options
@@ -71,87 +86,32 @@ func (la *Launcher) buildCommandLine(command string) string {
 	}
 
 	agentMode := DefaultAgentMode
-	if options.Mode != "" {
-		agentMode = options.Mode
+	if options.Verb != "" {
+		agentMode = options.Verb
 	}
 
 	sb.WriteString(fmt.Sprintf("%s %s %s", dotnetCli, agent, agentMode))
 
-	if options.TokenFile != "" {
-		sb.WriteString(fmt.Sprintf(" --tokenfile %s", options.TokenFile))
-	} else {
-		sb.WriteString(fmt.Sprintf(" --token %s", options.Token))
+	for key, value := range la.Options.SlArguments {
+		sb.WriteString(fmt.Sprintf(" --%s %s", key, value))
 	}
 
-	if options.BsIdFile != "" {
-		sb.WriteString(fmt.Sprintf(" --buildSessionIdFile %s", options.BsIdFile))
-	} else {
-		sb.WriteString(fmt.Sprintf(" --buildSessionId %s", options.BsId))
-	}
+	if la.Options.ParseArgsFromCmd == "true" {
+		_, exists := la.Options.SlArguments["workingDir"]
+		if !exists {
+			sb.WriteString(" --workingDir ${PWD}")
+		}
 
-	if options.ProfilerLogDir != "" {
-		sb.WriteString(fmt.Sprintf(" --profilerLogDir %s", options.ProfilerLogDir))
-	}
+		parsedTarget, parsedArgs := la.getTargetArgs(command)
+		_, exists = la.Options.SlArguments["target"]
+		if !exists {
+			sb.WriteString(fmt.Sprintf(" --target %s", parsedTarget))
+		}
 
-	if options.ProfilerLogLevel != "" {
-		sb.WriteString(fmt.Sprintf(" --profilerLogLevel %s", options.ProfilerLogLevel))
-	}
-
-	if options.Tags != "" {
-		sb.WriteString(fmt.Sprintf(" --tags %s", options.Tags))
-	}
-
-	if options.Tools != "" {
-		sb.WriteString(fmt.Sprintf(" --tools %s", options.Tools))
-	}
-
-	if options.IgnoreCertificateErrors == "true" {
-		sb.WriteString(" --ignoreCertificateErrors true")
-	}
-
-	if options.NotCli == "true" {
-		sb.WriteString(" --notCli true")
-	}
-
-	if options.AppName != "" {
-		sb.WriteString(fmt.Sprintf(" --appName %s", options.AppName))
-	}
-
-	if options.BranchName != "" {
-		sb.WriteString(fmt.Sprintf(" --branchName %s", options.BranchName))
-	}
-
-	if options.BuildName != "" {
-		sb.WriteString(fmt.Sprintf(" --buildName %s", options.BuildName))
-	}
-
-	if options.IncludeNamespace != "" {
-		sb.WriteString(fmt.Sprintf(" --includeNamespace %s", options.IncludeNamespace))
-	}
-
-	if options.WorkspacePath != "" {
-		sb.WriteString(fmt.Sprintf(" --workspacePath %s", options.WorkspacePath))
-	}
-
-	if options.IgnoreGeneratedCode != "" {
-		sb.WriteString(fmt.Sprintf(" --ignoreGeneratedCode %s", options.IgnoreGeneratedCode))
-	}
-
-	if options.TestStage != "" {
-		sb.WriteString(fmt.Sprintf(" --testStage %s", options.TestStage))
-	}
-
-	if options.Proxy != "" {
-		sb.WriteString(fmt.Sprintf(" --proxy %s", options.Proxy))
-		sb.WriteString(fmt.Sprintf(" --proxyUsername %s", options.ProxyUsername))
-		sb.WriteString(fmt.Sprintf(" --proxyPassword %s", options.ProxyPassword))
-	}
-
-	sb.WriteString(" --workingDir ${PWD}")
-
-	if agentMode == DefaultAgentMode {
-		target, args := la.getTargetArgs(command)
-		sb.WriteString(fmt.Sprintf(" --target %s --targetArgs \"%s\"", target, args))
+		_, exists = la.Options.SlArguments["targetArgs"]
+		if !exists {
+			sb.WriteString(fmt.Sprintf(" --targetArgs \"%s\"", parsedArgs))
+		}
 	}
 
 	return sb.String()
@@ -172,17 +132,47 @@ func (la *Launcher) getTargetArgs(command string) (target string, args string) {
 	withoutArguments := parts[0]
 	args = fmt.Sprintf("test %s", withoutArguments)
 
-	if la.Options.Target != "" {
-		target = la.Options.Target
-	}
-
-	if la.Options.TargetArgs != "" {
-		args = la.Options.TargetArgs
-	}
-
 	if strings.HasPrefix(args, "--") {
 		args = fmt.Sprintf(" %s", args)
 	}
 
 	return
+}
+
+func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId string) (string, error) {
+	agentEnvFileName := "sealights.envrc"
+	exportCommand := "export"
+	executeCommand := "source"
+
+	if runtime.GOOS == "windows" {
+		agentEnvFileName = "sealights.bat"
+		exportCommand = "set"
+		executeCommand = "call"
+	}
+
+	la.Log.Debug(fmt.Sprintf("Create file %s", agentEnvFileName))
+
+	agentEnvFile := filepath.Join(agentPath, agentEnvFileName)
+	file, err := os.OpenFile(agentEnvFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return "", err
+	}
+
+	agentProfilerLibx86 := filepath.Join(agentPath, "SL.DotNet.ProfilerLib_x86.dll")
+	agentProfilerLibx64 := filepath.Join(agentPath, "SL.DotNet.ProfilerLib_x64.dll")
+
+	fileContent := ""
+
+	fileContent += fmt.Sprintf("%s Cor_Profiler={01CA2C22-DC03-4FF5-8350-59E32A3536BAHOME}\n", exportCommand)
+	fileContent += fmt.Sprintf("%s Cor_Enable_Profiling=1\n", exportCommand)
+	fileContent += fmt.Sprintf("%s Cor_Profiler_Path=%s\n", exportCommand, agentProfilerLibx64)
+	fileContent += fmt.Sprintf("%s COR_PROFILER_PATH_32=%s\n", exportCommand, agentProfilerLibx86)
+	fileContent += fmt.Sprintf("%s COR_PROFILER_PATH_64=%s\n", exportCommand, agentProfilerLibx64)
+	fileContent += fmt.Sprintf("%s SeaLights_CollectorId=%s\n", exportCommand, collectorId)
+
+	if _, err = file.WriteString(fileContent); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s %s", executeCommand, agentEnvFile), nil
 }
