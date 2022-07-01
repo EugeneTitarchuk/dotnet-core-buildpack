@@ -163,6 +163,7 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 	la.Log.Error("TEST3")
 	file, err := os.OpenFile(agentEnvFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
+		la.Log.Error(fmt.Sprint(err))
 		return "", err
 	}
 	defer file.Close()
