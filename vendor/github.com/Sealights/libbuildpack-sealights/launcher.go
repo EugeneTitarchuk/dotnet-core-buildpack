@@ -126,6 +126,8 @@ func (la *Launcher) buildCommandLine(command string) string {
 		sb.WriteString(fmt.Sprintf(" && %s && %s", exportEnvCmd, command))
 
 		la.addSealightsEntryPoint(dotnetCli, agent)
+
+		return fmt.Sprintf("%s && %s", exportEnvCmd, command)
 	}
 
 	return sb.String()
