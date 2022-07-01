@@ -146,10 +146,11 @@ func (la *Launcher) getTargetArgs(command string) (target string, args string) {
 }
 
 func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId string) (string, error) {
+	la.Log.Error("TEST1")
 	agentEnvFileName := "sealights.envrc"
 	exportCommand := "export"
 	executeCommand := "source"
-
+	la.Log.Error("TEST2")
 	if runtime.GOOS == "windows" {
 		agentEnvFileName = "sealights.bat"
 		exportCommand = "set"
@@ -159,11 +160,13 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 	la.Log.Debug(fmt.Sprintf("Create file %s", agentEnvFileName))
 
 	agentEnvFile := filepath.Join(agentPath, agentEnvFileName)
+	la.Log.Error("TEST3")
 	file, err := os.OpenFile(agentEnvFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return "", err
 	}
 	defer file.Close()
+	la.Log.Error("TEST4")
 
 	agentProfilerLibx86 := filepath.Join(agentPath, "SL.DotNet.ProfilerLib_x86.dll")
 	agentProfilerLibx64 := filepath.Join(agentPath, "SL.DotNet.ProfilerLib_x64.dll")
