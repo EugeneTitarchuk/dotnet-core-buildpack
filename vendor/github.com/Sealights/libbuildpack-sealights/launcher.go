@@ -11,7 +11,8 @@ import (
 )
 
 const AgentName = "SL.DotNet.dll"
-const DefaultAgentMode = "testListener"
+const SealightsCli = "sealights"
+const DefaultAgentMode = "help"
 const ProfilerId = "01CA2C22-DC03-4FF5-8350-59E32A3536BA"
 
 type Launcher struct {
@@ -35,9 +36,13 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 
 	startCommand := releaseInfo.GetStartCommand()
 	newStartCommand := la.updateStartCommand(startCommand)
-	err := releaseInfo.SetStartCommand(newStartCommand)
-	if err != nil {
-		return err
+
+	if la.Options.Verb != "" {
+		// update application launch command only if Verb is provided
+		err := releaseInfo.SetStartCommand(newStartCommand)
+		if err != nil {
+			return err
+		}
 	}
 
 	la.Log.Info(fmt.Sprintf("Sealights: Start command updated. From '%s' to '%s'", startCommand, newStartCommand))
@@ -189,11 +194,11 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 	return fmt.Sprintf("%s %s && env", executeCommand, homeBasedEnvFile), nil
 }
 
-func (la *Launcher) addSealightsEntryPoint(agent string, dotnetCli string) error {
-	fileName := "sealights-cli"
+func (la *Launcher) addSealightsEntryPoint(dotnetCli string, agent string) error {
+	la.Log.Debug(fmt.Sprintf("Create file [%s] for cli", SealightsCli))
 
-	la.Log.Debug(fmt.Sprintf("Create file %s", fileName))
-	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+	cliFileName := filepath.Join(la.AgentDirAbsolute, SealightsCli)
+	file, err := os.OpenFile(cliFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
 	if err != nil {
 		return err
 	}
