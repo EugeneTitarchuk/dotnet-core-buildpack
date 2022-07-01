@@ -44,7 +44,7 @@ func (agi *AgentInstaller) InstallAgent(stager *libbuildpack.Stager) (string, er
 		return "", err
 	}
 
-	return filepath.Join("${HOME}", AgentDir), nil
+	return AgentDir, nil
 }
 
 func (agi *AgentInstaller) InstallDependency(stager *libbuildpack.Stager) (string, error) {

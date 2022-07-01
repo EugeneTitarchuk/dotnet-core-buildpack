@@ -15,14 +15,17 @@ const DefaultAgentMode = "testListener"
 const ProfilerId = "01CA2C22-DC03-4FF5-8350-59E32A3536BA"
 
 type Launcher struct {
-	Log       *libbuildpack.Logger
-	Options   *SealightsOptions
-	AgentDir  string
-	DotNetDir string
+	Log                *libbuildpack.Logger
+	Options            *SealightsOptions
+	AgentDirAbsolute   string
+	AgentDirForRuntime string
+	DotNetDir          string
 }
 
-func NewLauncher(log *libbuildpack.Logger, options *SealightsOptions, agentInstallationDir string, dotnetInstallationDir string) *Launcher {
-	return &Launcher{Log: log, Options: options, AgentDir: agentInstallationDir, DotNetDir: dotnetInstallationDir}
+func NewLauncher(log *libbuildpack.Logger, options *SealightsOptions, agentInstallationDir string, dotnetInstallationDir string, buildDir string) *Launcher {
+	agentDirForRuntime := filepath.Join("${HOME}", agentInstallationDir)
+	agentDirAbsolute := filepath.Join(buildDir, agentInstallationDir)
+	return &Launcher{Log: log, Options: options, AgentDirForRuntime: agentDirForRuntime, AgentDirAbsolute: agentDirAbsolute, DotNetDir: dotnetInstallationDir}
 }
 
 func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
@@ -43,9 +46,9 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 }
 
 func (la *Launcher) updateAgentPath(stager *libbuildpack.Stager) {
-	if strings.HasPrefix(la.AgentDir, stager.BuildDir()) {
-		clearPath := strings.TrimPrefix(la.AgentDir, stager.BuildDir())
-		la.AgentDir = filepath.Join(".", clearPath)
+	if strings.HasPrefix(la.AgentDirForRuntime, stager.BuildDir()) {
+		clearPath := strings.TrimPrefix(la.AgentDirForRuntime, stager.BuildDir())
+		la.AgentDirForRuntime = filepath.Join(".", clearPath)
 	}
 }
 
@@ -70,7 +73,7 @@ func (la *Launcher) buildCommandLine(command string) string {
 	var sb strings.Builder
 	options := la.Options
 
-	agent := filepath.Join(la.AgentDir, AgentName)
+	agent := filepath.Join(la.AgentDirForRuntime, AgentName)
 	dotnetCli := "dotnet"
 	if la.DotNetDir != "" {
 		dotnetCli = filepath.Join(la.DotNetDir, "dotnet")
@@ -109,7 +112,7 @@ func (la *Launcher) buildCommandLine(command string) string {
 
 	testListenerSessionKey, sessionKeyExists := la.Options.SlArguments["testListenerSessionKey"]
 	if sessionKeyExists {
-		exportEnvCmd, err := la.addProfilerConfiguration(la.AgentDir, testListenerSessionKey)
+		exportEnvCmd, err := la.addProfilerConfiguration(la.AgentDirForRuntime, testListenerSessionKey)
 		if err != nil {
 			la.Log.Error("Sealights. Failed to parse arguments")
 			return command
@@ -159,7 +162,7 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 
 	la.Log.Debug(fmt.Sprintf("Create file %s", agentEnvFileName))
 
-	agentEnvFile := filepath.Join(agentPath, agentEnvFileName)
+	agentEnvFile := filepath.Join(la.AgentDirAbsolute, agentEnvFileName)
 	la.Log.Error("TEST3")
 	file, err := os.OpenFile(agentEnvFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -169,8 +172,8 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 	defer file.Close()
 	la.Log.Error("TEST4")
 
-	agentProfilerLibx86 := filepath.Join(agentPath, "SL.DotNet.ProfilerLib_x86.dll")
-	agentProfilerLibx64 := filepath.Join(agentPath, "SL.DotNet.ProfilerLib_x64.dll")
+	agentProfilerLibx86 := filepath.Join(la.AgentDirForRuntime, "SL.DotNet.ProfilerLib_x86.dll")
+	agentProfilerLibx64 := filepath.Join(la.AgentDirForRuntime, "SL.DotNet.ProfilerLib_x64.dll")
 
 	fileContent := ""
 
