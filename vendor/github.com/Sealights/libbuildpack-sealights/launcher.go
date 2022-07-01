@@ -149,11 +149,10 @@ func (la *Launcher) getTargetArgs(command string) (target string, args string) {
 }
 
 func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId string) (string, error) {
-	la.Log.Error("TEST1")
 	agentEnvFileName := "sealights.envrc"
 	exportCommand := "export"
 	executeCommand := "source"
-	la.Log.Error("TEST2")
+
 	if runtime.GOOS == "windows" {
 		agentEnvFileName = "sealights.bat"
 		exportCommand = "set"
@@ -163,14 +162,13 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 	la.Log.Debug(fmt.Sprintf("Create file %s", agentEnvFileName))
 
 	agentEnvFile := filepath.Join(la.AgentDirAbsolute, agentEnvFileName)
-	la.Log.Error("TEST3")
+	homeBasedEnvFile := filepath.Join(la.AgentDirForRuntime, agentEnvFileName)
 	file, err := os.OpenFile(agentEnvFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		la.Log.Error(fmt.Sprint(err))
 		return "", err
 	}
 	defer file.Close()
-	la.Log.Error("TEST4")
 
 	agentProfilerLibx86 := filepath.Join(la.AgentDirForRuntime, "SL.DotNet.ProfilerLib_x86.dll")
 	agentProfilerLibx64 := filepath.Join(la.AgentDirForRuntime, "SL.DotNet.ProfilerLib_x64.dll")
@@ -188,7 +186,7 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 		return "", err
 	}
 
-	return fmt.Sprintf("%s %s", executeCommand, agentEnvFile), nil
+	return fmt.Sprintf("%s %s", executeCommand, homeBasedEnvFile), nil
 }
 
 func (la *Launcher) addSealightsEntryPoint(agent string, dotnetCli string) error {
