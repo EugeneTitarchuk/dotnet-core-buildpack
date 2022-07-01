@@ -12,6 +12,7 @@ import (
 
 const AgentName = "SL.DotNet.dll"
 const DefaultAgentMode = "testListener"
+const ProfilerId = "01CA2C22-DC03-4FF5-8350-59E32A3536BA"
 
 type Launcher struct {
 	Log       *libbuildpack.Logger
@@ -56,16 +57,6 @@ func (la *Launcher) updateStartCommand(originalCommand string) string {
 	parts := strings.SplitAfterN(originalCommand, "exec ", 2)
 
 	newCmd := parts[0] + la.buildCommandLine(parts[1])
-
-	testListenerSessionKey, sessionKeyExists := la.Options.SlArguments["testListenerSessionKey"]
-	if sessionKeyExists {
-		exportEnvCmd, err := la.addProfilerConfiguration(la.AgentDir, testListenerSessionKey)
-		if err != nil {
-			la.Log.Error("Sealights. Failed to parse arguments")
-			return originalCommand
-		}
-		newCmd = fmt.Sprintf("%s && %s && %s", newCmd, exportEnvCmd, parts[1])
-	}
 
 	return newCmd
 }
@@ -114,6 +105,19 @@ func (la *Launcher) buildCommandLine(command string) string {
 		}
 	}
 
+	testListenerSessionKey, sessionKeyExists := la.Options.SlArguments["testListenerSessionKey"]
+	if sessionKeyExists {
+		exportEnvCmd, err := la.addProfilerConfiguration(la.AgentDir, testListenerSessionKey)
+		if err != nil {
+			la.Log.Error("Sealights. Failed to parse arguments")
+			return command
+		}
+
+		sb.WriteString(fmt.Sprintf(" && %s && %s", exportEnvCmd, command))
+
+		la.addSealightsEntryPoint(dotnetCli, agent)
+	}
+
 	return sb.String()
 }
 
@@ -157,13 +161,14 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 	if err != nil {
 		return "", err
 	}
+	defer file.Close()
 
 	agentProfilerLibx86 := filepath.Join(agentPath, "SL.DotNet.ProfilerLib_x86.dll")
 	agentProfilerLibx64 := filepath.Join(agentPath, "SL.DotNet.ProfilerLib_x64.dll")
 
 	fileContent := ""
 
-	fileContent += fmt.Sprintf("%s Cor_Profiler={01CA2C22-DC03-4FF5-8350-59E32A3536BAHOME}\n", exportCommand)
+	fileContent += fmt.Sprintf("%s Cor_Profiler={%s}\n", exportCommand, ProfilerId)
 	fileContent += fmt.Sprintf("%s Cor_Enable_Profiling=1\n", exportCommand)
 	fileContent += fmt.Sprintf("%s Cor_Profiler_Path=%s\n", exportCommand, agentProfilerLibx64)
 	fileContent += fmt.Sprintf("%s COR_PROFILER_PATH_32=%s\n", exportCommand, agentProfilerLibx86)
@@ -175,4 +180,22 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 	}
 
 	return fmt.Sprintf("%s %s", executeCommand, agentEnvFile), nil
+}
+
+func (la *Launcher) addSealightsEntryPoint(agent string, dotnetCli string) error {
+	fileName := "sealights-cli"
+
+	la.Log.Debug(fmt.Sprintf("Create file %s", fileName))
+	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	runCmd := fmt.Sprintf(`exec %s %s "$$@"`, dotnetCli, agent)
+
+	file.WriteString(`#!/bin/sh` + "\n\n" + runCmd)
+
+	return nil
 }
