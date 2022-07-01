@@ -62,8 +62,7 @@ func (la *Launcher) updateStartCommand(originalCommand string) string {
 	// cd ${DEPS_DIR}/0/dotnet_publish && exec ./app --server.urls http://0.0.0.0:${PORT}
 	// cd ${DEPS_DIR}/0/dotnet_publish && exec dotnet ./app.dll --server.urls http://0.0.0.0:${PORT}
 
-	//parts := strings.SplitAfterN(originalCommand, "exec ", 2)
-	parts := strings.SplitAfterN(originalCommand, "&& ", 2)
+	parts := strings.SplitAfterN(originalCommand, "exec ", 2)
 
 	newCmd := parts[0] + la.buildCommandLine(parts[1])
 
@@ -127,8 +126,6 @@ func (la *Launcher) buildCommandLine(command string) string {
 		sb.WriteString(fmt.Sprintf(" && %s && %s", exportEnvCmd, command))
 
 		la.addSealightsEntryPoint(dotnetCli, agent)
-
-		return fmt.Sprintf("%s && %s", exportEnvCmd, command)
 	}
 
 	return sb.String()
