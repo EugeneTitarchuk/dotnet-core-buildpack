@@ -84,6 +84,8 @@ func (la *Launcher) buildCommandLine(command string) string {
 	sb.WriteString(fmt.Sprintf("%s %s %s", dotnetCli, agent, agentMode))
 
 	for key, value := range la.Options.SlArguments {
+		la.Log.Info(fmt.Sprintf("Added: --%s %s", key, value))
+
 		sb.WriteString(fmt.Sprintf(" --%s %s", key, value))
 	}
 

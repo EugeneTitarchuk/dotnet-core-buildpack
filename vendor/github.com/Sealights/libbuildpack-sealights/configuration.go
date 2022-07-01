@@ -101,6 +101,7 @@ func (conf *Configuration) parseVcapServices() {
 				Proxy:            queryString("proxy"),
 				ProxyUsername:    queryString("proxyUsername"),
 				ProxyPassword:    queryString("proxyPassword"),
+				SlArguments:      slArguments,
 			}
 
 			isTokenProvided := options.Token != "" || options.TokenFile != ""
