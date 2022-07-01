@@ -186,7 +186,7 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 		return "", err
 	}
 
-	return fmt.Sprintf("%s %s", executeCommand, homeBasedEnvFile), nil
+	return fmt.Sprintf("%s %s && env", executeCommand, homeBasedEnvFile), nil
 }
 
 func (la *Launcher) addSealightsEntryPoint(agent string, dotnetCli string) error {
