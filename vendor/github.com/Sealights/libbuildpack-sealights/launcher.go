@@ -64,7 +64,7 @@ func (la *Launcher) updateStartCommand(originalCommand string) string {
 
 	parts := strings.SplitAfterN(originalCommand, "exec ", 2)
 
-	cdPart := strings.TrimPrefix(parts[0], "exec ")
+	cdPart := strings.TrimSuffix(parts[0], "exec ")
 	newCmd := cdPart + la.buildCommandLine(parts[1])
 
 	return newCmd
