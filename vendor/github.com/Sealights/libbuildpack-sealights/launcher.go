@@ -135,7 +135,6 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 
 	agentEnvFile := filepath.Join(la.AgentDirAbsolute, agentEnvFileName)
 	homeBasedEnvFile := filepath.Join(la.AgentDirForRuntime, agentEnvFileName)
-	logsFolder := filepath.Join(la.AgentDirForRuntime, "logs")
 	file, err := os.OpenFile(agentEnvFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		la.Log.Error(fmt.Sprint(err))
@@ -158,7 +157,7 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 	fileContent += fmt.Sprintf("%s CORECLR_PROFILER_PATH_32=%s\n", exportCommand, agentProfilerLibx86)
 	fileContent += fmt.Sprintf("%s CORECLR_PROFILER_PATH_64=%s\n", exportCommand, agentProfilerLibx64)
 	fileContent += fmt.Sprintf("%s SeaLights_CollectorId=%s\n", exportCommand, collectorId)
-	fileContent += fmt.Sprintf("%s SL_LogDir=%s\n", exportCommand, logsFolder)
+	fileContent += fmt.Sprintf("%s SL_LogDir=%s\n", exportCommand, la.AgentDirForRuntime)
 	fileContent += fmt.Sprintf("%s SL_LogLevel=6\n", exportCommand)
 
 	if _, err = file.WriteString(fileContent); err != nil {
