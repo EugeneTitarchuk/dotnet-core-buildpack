@@ -42,7 +42,7 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 		if err != nil {
 			return err
 		}
-	
+
 		la.Log.Info(fmt.Sprintf("Sealights: Start command updated. From '%s' to '%s'", startCommand, newStartCommand))
 	} else {
 		la.Log.Warning("Sealights. Verb/Custom command missed - start command wasn't modified")
@@ -86,9 +86,9 @@ func (la *Launcher) buildCommandLine(command string) string {
 	options := la.Options
 
 	agent := filepath.Join(la.AgentDirForRuntime, AgentName)
-	
+
 	agentMode := options.Verb
-	
+
 	sb.WriteString(fmt.Sprintf("%s %s %s", la.dotnetCli(), agent, agentMode))
 
 	for key, value := range la.Options.SlArguments {
@@ -101,7 +101,7 @@ func (la *Launcher) buildCommandLine(command string) string {
 
 		// if testListenerSessionKey is provided, selected mode is background test listener
 		// and target application should be started after the sealights agent
-		sb.WriteString(fmt.Sprintf(" && %s && %s", exportEnvCmd, command))
+		sb.WriteString(fmt.Sprintf(" && %s && env && %s", exportEnvCmd, command))
 
 		// resulting launch command should have only one 'exec' keyword
 		// for the last subsequence part
@@ -111,7 +111,7 @@ func (la *Launcher) buildCommandLine(command string) string {
 	}
 }
 
-// Create file sealights.envrc with all the required env variables to make 
+// Create file sealights.envrc with all the required env variables to make
 // the profiler to attach to the target application
 func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId string) (string, error) {
 	agentEnvFileName := "sealights.envrc"
@@ -172,7 +172,7 @@ func (la *Launcher) addSealightsEntryPoint() error {
 
 	defer file.Close()
 
-	runCmd := fmt.Sprintf(`exec %s %s "$$@"`, la.dotnetCli(), la.agentCli())
+	runCmd := fmt.Sprintf(`exec %s %s "$@"`, la.dotnetCli(), la.agentCli())
 
 	file.WriteString(`#!/bin/sh` + "\n\n" + runCmd)
 
