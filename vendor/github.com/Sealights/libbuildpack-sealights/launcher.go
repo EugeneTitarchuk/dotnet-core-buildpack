@@ -12,7 +12,8 @@ import (
 
 const AgentName = "SL.DotNet.dll"
 const SealightsCli = "sealights"
-const ProfilerId = "01CA2C22-DC03-4FF5-8350-59E32A3536BA"
+const WindowsProfilerId = "01CA2C22-DC03-4FF5-8350-59E32A3536BA"
+const LinuxProfilerId = "3B1DAA64-89D4-4999-ABF4-6A979B650B7D"
 
 type Launcher struct {
 	Log                *libbuildpack.Logger
@@ -119,6 +120,7 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 	executeCommand := "source"
 	profilerLib_x64 := "libSL.DotNet.ProfilerLib.Linux.so"
 	profilerLib_x86 := "libSL.DotNet.ProfilerLib.Linux.so"
+	profilerId := LinuxProfilerId
 
 	if runtime.GOOS == "windows" {
 		agentEnvFileName = "sealights.bat"
@@ -126,6 +128,7 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 		executeCommand = "call"
 		profilerLib_x64 = "SL.DotNet.ProfilerLib_x64.dll"
 		profilerLib_x86 = "SL.DotNet.ProfilerLib_x86.dll"
+		profilerId = WindowsProfilerId
 	}
 
 	la.Log.Debug(fmt.Sprintf("Create file %s", agentEnvFileName))
@@ -145,7 +148,7 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 
 	fileContent := ""
 
-	fileContent += fmt.Sprintf("%s Cor_Profiler={%s}\n", exportCommand, ProfilerId)
+	fileContent += fmt.Sprintf("%s Cor_Profiler={%s}\n", exportCommand, profilerId)
 	fileContent += fmt.Sprintf("%s Cor_Enable_Profiling=1\n", exportCommand)
 	fileContent += fmt.Sprintf("%s Cor_Profiler_Path=%s\n", exportCommand, agentProfilerLibx64)
 	fileContent += fmt.Sprintf("%s COR_PROFILER_PATH_32=%s\n", exportCommand, agentProfilerLibx86)
