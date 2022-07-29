@@ -22,7 +22,6 @@ type SealightsOptions struct {
 	TokenFile        string
 	BsId             string
 	BsIdFile         string
-	ParseArgsFromCmd string
 	Proxy            string
 	ProxyUsername    string
 	ProxyPassword    string
@@ -97,7 +96,6 @@ func (conf *Configuration) parseVcapServices() {
 				BsId:             queryString("buildSessionId"),
 				BsIdFile:         queryString("buildSessionIdFile"),
 				LabId:            queryString("labId"),
-				ParseArgsFromCmd: queryString("parseArgsFromCmd"),
 				Proxy:            queryString("proxy"),
 				ProxyUsername:    queryString("proxyUsername"),
 				ProxyPassword:    queryString("proxyPassword"),

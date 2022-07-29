@@ -205,7 +205,7 @@ func (agi *AgentInstaller) downloadFile(agentUrl string, destFile string) error 
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return fmt.Errorf("Could not download: %d", resp.StatusCode)
+		return fmt.Errorf("could not download: %d", resp.StatusCode)
 	}
 
 	return writeToFile(resp.Body, destFile, 0666)
