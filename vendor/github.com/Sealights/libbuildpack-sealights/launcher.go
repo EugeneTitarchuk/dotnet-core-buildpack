@@ -46,7 +46,7 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 
 		la.Log.Info(fmt.Sprintf("Sealights: Start command updated. From '%s' to '%s'", startCommand, newStartCommand))
 	} else {
-		la.Log.Warning("Sealights. Verb/Custom command missed - start command wasn't modified")
+		la.Log.Warning("Sealights. Verb or Custom Command are missed - start command will not be modified")
 	}
 
 	la.addSealightsEntryPoint()
@@ -157,8 +157,11 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 	fileContent += fmt.Sprintf("%s CORECLR_PROFILER_PATH_32=%s\n", exportCommand, agentProfilerLibx86)
 	fileContent += fmt.Sprintf("%s CORECLR_PROFILER_PATH_64=%s\n", exportCommand, agentProfilerLibx64)
 	fileContent += fmt.Sprintf("%s SeaLights_CollectorId=%s\n", exportCommand, collectorId)
-	fileContent += fmt.Sprintf("%s SL_LogDir=%s\n", exportCommand, la.AgentDirForRuntime)
-	fileContent += fmt.Sprintf("%s SL_LogLevel=6\n", exportCommand)
+	
+	if (la.Options.EnableProfilerLogs == "true"){
+		fileContent += fmt.Sprintf("%s SL_LogDir=%s\n", exportCommand, la.AgentDirForRuntime)
+		fileContent += fmt.Sprintf("%s SL_LogLevel=6\n", exportCommand)
+	}
 
 	if _, err = file.WriteString(fileContent); err != nil {
 		return "", err
