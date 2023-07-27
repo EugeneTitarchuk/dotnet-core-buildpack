@@ -22,6 +22,8 @@ const DefaultVersion = "latest"
 const AgentDir = "sealights"
 const DotnetDir = "dotnet-sdk"
 
+const AgentDownloadUrlFormat = "https://%s.sealights.co/dotnetcore/sealights-dotnet-agent-%s.tar.gz"
+
 type AgentInstaller struct {
 	Log                *libbuildpack.Logger
 	Options            *SealightsOptions
@@ -33,6 +35,8 @@ func NewAgentInstaller(log *libbuildpack.Logger, options *SealightsOptions) *Age
 }
 
 func (agi *AgentInstaller) InstallAgent(stager *libbuildpack.Stager) (string, error) {
+	agi.Log.Debug(" ---> DEBUG <---")
+
 	installationPath := filepath.Join(stager.BuildDir(), AgentDir)
 	archivePath, err := agi.downloadPackage()
 	if err != nil {
