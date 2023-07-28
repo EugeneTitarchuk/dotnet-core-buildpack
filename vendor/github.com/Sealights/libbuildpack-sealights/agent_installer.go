@@ -12,17 +12,22 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"runtime"
 
 	"github.com/cloudfoundry/libbuildpack"
 )
 
 const PackageArchiveName = "sealights-agent.tar.gz"
+
+const WindowsPackageName = "sealights-dotnet-agent-linux-self-contained.zip"
+const LinuxPackageName = "sealights-dotnet-agent-windows-self-contained.tar.gz"
+
 const DefaultLabId = "agents"
 const DefaultVersion = "latest"
 const AgentDir = "sealights"
 const DotnetDir = "dotnet-sdk"
 
-const AgentDownloadUrlFormat = "https://%s.sealights.co/dotnetcore/sealights-dotnet-agent-%s.tar.gz"
+const AgentDownloadUrlFormat = "https://%s.sealights.co/dotnetcore/%s/%s"
 
 type AgentInstaller struct {
 	Log                *libbuildpack.Logger
@@ -35,13 +40,24 @@ func NewAgentInstaller(log *libbuildpack.Logger, options *SealightsOptions) *Age
 }
 
 func (agi *AgentInstaller) InstallAgent(stager *libbuildpack.Stager) (string, error) {
-	agi.Log.Debug(" ---> DEBUG <---")
+	agi.Log.Info(" ---> DEBUG <---")
+
+	packageName := runtime.GOOS == "windows" ? WindowsPackageName : LinuxPackageName
+
+	if runtime.GOOS == "windows" {
+		packageName := WindowsPackageName
+	} else {
+		packageName := LinuxPackageName
+	}
 
 	installationPath := filepath.Join(stager.BuildDir(), AgentDir)
-	archivePath, err := agi.downloadPackage()
+	archivePath, err := agi.downloadPackage(packageName ? )
 	if err != nil {
 		return "", err
 	}
+
+
+	
 
 	err = agi.extractPackage(archivePath, installationPath)
 	if err != nil {
@@ -133,12 +149,12 @@ func (agi *AgentInstaller) selectDotnetVersions(manifest *libbuildpack.Manifest)
 	return
 }
 
-func (agi *AgentInstaller) downloadPackage() (string, error) {
-	url := agi.getDownloadUrl()
+func (agi *AgentInstaller) downloadPackage(packageName string) (string, error) {
+	url := agi.getDownloadUrl(packageName)
 
 	agi.Log.Debug("Sealights. Download package started. From '%s'", url)
 
-	tempAgentFile := filepath.Join(os.TempDir(), PackageArchiveName)
+	tempAgentFile := filepath.Join(os.TempDir(), packageName)
 	err := agi.downloadFileWithRetry(url, tempAgentFile, agi.MaxDownloadRetries)
 	if err != nil {
 		agi.Log.Error("Sealights. Failed to download package.")
@@ -152,6 +168,7 @@ func (agi *AgentInstaller) downloadPackage() (string, error) {
 func (agi *AgentInstaller) extractPackage(source string, target string) error {
 	agi.Log.Debug("Sealights. Extract package from '%s' to '%s'", source, target)
 
+	libbuildpack.ExtractZip()
 	err := libbuildpack.ExtractTarGz(source, target)
 	if err != nil {
 		agi.Log.Error("Sealights. Failed to extract package.")
@@ -162,7 +179,7 @@ func (agi *AgentInstaller) extractPackage(source string, target string) error {
 	return nil
 }
 
-func (agi *AgentInstaller) getDownloadUrl() string {
+func (agi *AgentInstaller) getDownloadUrl(packageName string) string {
 	if agi.Options.CustomAgentUrl != "" {
 		return agi.Options.CustomAgentUrl
 	}
@@ -177,7 +194,9 @@ func (agi *AgentInstaller) getDownloadUrl() string {
 		version = agi.Options.Version
 	}
 
-	url := fmt.Sprintf("https://%s.sealights.co/dotnetcore/sealights-dotnet-agent-%s.tar.gz", labId, version)
+	// resulting url example: 
+	// https://agents.sealights.co/dotnetcore/latest/sealights-dotnet-agent-linux-self-contained.tar.gz
+	url := fmt.Sprintf(AgentDownloadUrlFormat, labId, version, packageName)
 
 	return url
 }
