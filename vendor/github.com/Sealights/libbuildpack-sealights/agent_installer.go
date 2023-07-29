@@ -1,10 +1,8 @@
 package sealights
 
 import (
-	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math"
 	"net/http"
 	"net/url"
@@ -40,8 +38,6 @@ func NewAgentInstaller(log *libbuildpack.Logger, options *SealightsOptions) *Age
 }
 
 func (agi *AgentInstaller) InstallAgent(stager *libbuildpack.Stager) (string, error) {
-	agi.Log.Info(" ---> DEBUG <---")
-
 	packageName := getPackageNameByPlatform()
 	installationPath := filepath.Join(stager.BuildDir(), AgentDir)
 	archivePath, err := agi.downloadPackage(packageName)
@@ -57,87 +53,87 @@ func (agi *AgentInstaller) InstallAgent(stager *libbuildpack.Stager) (string, er
 	return AgentDir, nil
 }
 
-// Install dotnet sdk and runtime required for the agent
-func (agi *AgentInstaller) InstallDependency(stager *libbuildpack.Stager) (string, error) {
-	if agi.isRequiredVersionInstalled(stager) {
-		agi.Log.Debug("Required dotnet version is already installed")
-		return "", nil
-	}
+// // Install dotnet sdk and runtime required for the agent
+// func (agi *AgentInstaller) InstallDependency(stager *libbuildpack.Stager) (string, error) {
+// 	if agi.isRequiredVersionInstalled(stager) {
+// 		agi.Log.Debug("Required dotnet version is already installed")
+// 		return "", nil
+// 	}
 
-	dependencyPath := filepath.Join(stager.BuildDir(), AgentDir, DotnetDir)
-	buildpackDir, err := libbuildpack.GetBuildpackDir()
-	if err != nil {
-		agi.Log.Error("Unable to determine buildpack directory: %s", err.Error())
-		return "", err
-	}
+// 	dependencyPath := filepath.Join(stager.BuildDir(), AgentDir, DotnetDir)
+// 	buildpackDir, err := libbuildpack.GetBuildpackDir()
+// 	if err != nil {
+// 		agi.Log.Error("Unable to determine buildpack directory: %s", err.Error())
+// 		return "", err
+// 	}
 
-	manifest, err := libbuildpack.NewManifest(buildpackDir, agi.Log, time.Now())
-	if err != nil {
-		agi.Log.Error("Unable to load buildpack manifest: %s", err.Error())
-		return "", err
-	}
+// 	manifest, err := libbuildpack.NewManifest(buildpackDir, agi.Log, time.Now())
+// 	if err != nil {
+// 		agi.Log.Error("Unable to load buildpack manifest: %s", err.Error())
+// 		return "", err
+// 	}
 
-	sdkVersion, runtimeVersion := agi.selectDotnetVersions(manifest)
-	depinstaller := libbuildpack.NewInstaller(manifest)
+// 	sdkVersion, runtimeVersion := agi.selectDotnetVersions(manifest)
+// 	depinstaller := libbuildpack.NewInstaller(manifest)
 
-	if err = depinstaller.InstallDependency(
-		libbuildpack.Dependency{Name: "dotnet-sdk", Version: sdkVersion},
-		dependencyPath,
-	); err != nil {
-		agi.Log.Error("Sealights. Failed to install dotnet sdk")
-		return "", err
-	}
+// 	if err = depinstaller.InstallDependency(
+// 		libbuildpack.Dependency{Name: "dotnet-sdk", Version: sdkVersion},
+// 		dependencyPath,
+// 	); err != nil {
+// 		agi.Log.Error("Sealights. Failed to install dotnet sdk")
+// 		return "", err
+// 	}
 
-	if err = depinstaller.InstallDependency(
-		libbuildpack.Dependency{Name: "dotnet-runtime", Version: runtimeVersion},
-		dependencyPath,
-	); err != nil {
-		agi.Log.Error("Sealights. Failed to install dotnet runtime")
-		return "", err
-	}
+// 	if err = depinstaller.InstallDependency(
+// 		libbuildpack.Dependency{Name: "dotnet-runtime", Version: runtimeVersion},
+// 		dependencyPath,
+// 	); err != nil {
+// 		agi.Log.Error("Sealights. Failed to install dotnet runtime")
+// 		return "", err
+// 	}
 
-	return filepath.Join("${HOME}", AgentDir, DotnetDir), nil
-}
+// 	return filepath.Join("${HOME}", AgentDir, DotnetDir), nil
+// }
 
-func (agi *AgentInstaller) isRequiredVersionInstalled(stager *libbuildpack.Stager) bool {
-	dotnetCliFile := filepath.Join(stager.DepDir(), "dotnet-sdk", "dotnet")
-	runtimeVersionsFile := filepath.Join(stager.DepDir(), "dotnet-sdk", "RuntimeVersion.txt")
+// func (agi *AgentInstaller) isRequiredVersionInstalled(stager *libbuildpack.Stager) bool {
+// 	dotnetCliFile := filepath.Join(stager.DepDir(), "dotnet-sdk", "dotnet")
+// 	runtimeVersionsFile := filepath.Join(stager.DepDir(), "dotnet-sdk", "RuntimeVersion.txt")
 
-	if _, err := os.Stat(dotnetCliFile); errors.Is(err, os.ErrNotExist) {
-		agi.Log.Debug("dotnet cli tool is not installed")
-		return false
-	}
+// 	if _, err := os.Stat(dotnetCliFile); errors.Is(err, os.ErrNotExist) {
+// 		agi.Log.Debug("dotnet cli tool is not installed")
+// 		return false
+// 	}
 
-	if _, err := os.Stat(runtimeVersionsFile); errors.Is(err, os.ErrNotExist) {
-		agi.Log.Debug("dotnet runtime is not installed")
-		return false
-	}
+// 	if _, err := os.Stat(runtimeVersionsFile); errors.Is(err, os.ErrNotExist) {
+// 		agi.Log.Debug("dotnet runtime is not installed")
+// 		return false
+// 	}
 
-	versionFileContent, err := ioutil.ReadFile(runtimeVersionsFile)
-	if err != nil {
-		return false
-	}
+// 	versionFileContent, err := ioutil.ReadFile(runtimeVersionsFile)
+// 	if err != nil {
+// 		return false
+// 	}
 
-	return strings.HasPrefix(string(versionFileContent), "6.")
-}
+// 	return strings.HasPrefix(string(versionFileContent), "6.")
+// }
 
-func (agi *AgentInstaller) selectDotnetVersions(manifest *libbuildpack.Manifest) (sdkVersion string, runtimeVersion string) {
-	sdkVersions := manifest.AllDependencyVersions("dotnet-sdk")
-	sdkVersion, _ = libbuildpack.FindMatchingVersion("6.0.x", sdkVersions)
-	if sdkVersion == "" {
-		agi.Log.Warning("Failed to resolve sdk version. 6.0.2 will be used")
-		sdkVersion = "6.0.2"
-	}
+// func (agi *AgentInstaller) selectDotnetVersions(manifest *libbuildpack.Manifest) (sdkVersion string, runtimeVersion string) {
+// 	sdkVersions := manifest.AllDependencyVersions("dotnet-sdk")
+// 	sdkVersion, _ = libbuildpack.FindMatchingVersion("6.0.x", sdkVersions)
+// 	if sdkVersion == "" {
+// 		agi.Log.Warning("Failed to resolve sdk version. 6.0.2 will be used")
+// 		sdkVersion = "6.0.2"
+// 	}
 
-	runtimeVersions := manifest.AllDependencyVersions("dotnet-runtime")
-	runtimeVersion, _ = libbuildpack.FindMatchingVersion("6.0.x", runtimeVersions)
-	if runtimeVersion == "" {
-		agi.Log.Warning("Failed to resolve runtime version. 6.0.3 will be used")
-		runtimeVersion = "6.0.3"
-	}
+// 	runtimeVersions := manifest.AllDependencyVersions("dotnet-runtime")
+// 	runtimeVersion, _ = libbuildpack.FindMatchingVersion("6.0.x", runtimeVersions)
+// 	if runtimeVersion == "" {
+// 		agi.Log.Warning("Failed to resolve runtime version. 6.0.3 will be used")
+// 		runtimeVersion = "6.0.3"
+// 	}
 
-	return
-}
+// 	return
+// }
 
 func (agi *AgentInstaller) downloadPackage(packageName string) (string, error) {
 	url := agi.getDownloadUrl(packageName)
