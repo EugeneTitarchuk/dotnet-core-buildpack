@@ -10,9 +10,9 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
-	"runtime"
 
 	"github.com/cloudfoundry/libbuildpack"
 )
@@ -42,22 +42,12 @@ func NewAgentInstaller(log *libbuildpack.Logger, options *SealightsOptions) *Age
 func (agi *AgentInstaller) InstallAgent(stager *libbuildpack.Stager) (string, error) {
 	agi.Log.Info(" ---> DEBUG <---")
 
-	packageName := runtime.GOOS == "windows" ? WindowsPackageName : LinuxPackageName
-
-	if runtime.GOOS == "windows" {
-		packageName := WindowsPackageName
-	} else {
-		packageName := LinuxPackageName
-	}
-
+	packageName := getPackageNameByPlatform()
 	installationPath := filepath.Join(stager.BuildDir(), AgentDir)
-	archivePath, err := agi.downloadPackage(packageName ? )
+	archivePath, err := agi.downloadPackage(packageName)
 	if err != nil {
 		return "", err
 	}
-
-
-	
 
 	err = agi.extractPackage(archivePath, installationPath)
 	if err != nil {
@@ -168,8 +158,14 @@ func (agi *AgentInstaller) downloadPackage(packageName string) (string, error) {
 func (agi *AgentInstaller) extractPackage(source string, target string) error {
 	agi.Log.Debug("Sealights. Extract package from '%s' to '%s'", source, target)
 
-	libbuildpack.ExtractZip()
-	err := libbuildpack.ExtractTarGz(source, target)
+	var err error
+	var isZip = strings.HasSuffix(source, ".zip")
+	if isZip {
+		err = libbuildpack.ExtractZip(source, target)
+	} else {
+		err = libbuildpack.ExtractTarGz(source, target)
+	}
+
 	if err != nil {
 		agi.Log.Error("Sealights. Failed to extract package.")
 		return err
@@ -194,7 +190,7 @@ func (agi *AgentInstaller) getDownloadUrl(packageName string) string {
 		version = agi.Options.Version
 	}
 
-	// resulting url example: 
+	// resulting url example:
 	// https://agents.sealights.co/dotnetcore/latest/sealights-dotnet-agent-linux-self-contained.tar.gz
 	url := fmt.Sprintf(AgentDownloadUrlFormat, labId, version, packageName)
 
@@ -271,4 +267,12 @@ func writeToFile(source io.Reader, destFile string, mode os.FileMode) error {
 	}
 
 	return nil
+}
+
+func getPackageNameByPlatform() string {
+	if runtime.GOOS == "windows" {
+		return WindowsPackageName
+	} else {
+		return LinuxPackageName
+	}
 }
