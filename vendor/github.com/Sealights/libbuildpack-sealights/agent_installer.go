@@ -19,8 +19,8 @@ import (
 
 const PackageArchiveName = "sealights-agent.tar.gz"
 
-const WindowsPackageName = "sealights-dotnet-agent-linux-self-contained.zip"
-const LinuxPackageName = "sealights-dotnet-agent-windows-self-contained.tar.gz"
+const WindowsPackageName = "sealights-dotnet-agent-windows-self-contained.zip"
+const LinuxPackageName = "sealights-dotnet-agent-linux-self-contained.tar.gz"
 
 const DefaultLabId = "agents"
 const DefaultVersion = "latest"
