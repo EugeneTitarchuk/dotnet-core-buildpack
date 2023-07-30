@@ -10,8 +10,6 @@ import (
 	"github.com/cloudfoundry/libbuildpack"
 )
 
-// const SealightsCli = "sealights"
-
 const WindowsProfilerId = "01CA2C22-DC03-4FF5-8350-59E32A3536BA"
 const WindowsAgentName = "SL.DotNet.exe"
 
@@ -50,8 +48,6 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 	} else {
 		la.Log.Warning("Sealights. Verb or Custom Command are missed - start command will not be modified")
 	}
-
-	// la.addSealightsEntryPoint()
 
 	return nil
 }
@@ -166,40 +162,6 @@ func (la *Launcher) addProfilerConfiguration(agentPath string, collectorId strin
 
 	return fmt.Sprintf("%s %s", executeCommand, homeBasedEnvFile), nil
 }
-
-// // Create simple executable file that will allow to use the agent
-// // from the run-task command
-// // Example: cf run-task [app name] --command "sealights/sealights stopBackgroundTestListener [options]"
-// func (la *Launcher) addSealightsEntryPoint() error {
-// 	la.Log.Debug(fmt.Sprintf("Create file [%s] for cli", SealightsCli))
-
-// 	cliFileName := filepath.Join(la.AgentDirAbsolute, SealightsCli)
-// 	file, err := os.OpenFile(cliFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	defer file.Close()
-
-// 	runCmd := fmt.Sprintf(`exec %s %s "$@"`, la.dotnetCli(), la.agentCli())
-
-// 	file.WriteString(`#!/bin/sh` + "\n\n" + runCmd)
-
-// 	return nil
-// }
-
-// func (la *Launcher) dotnetCli() string {
-// 	dotnetCli := "dotnet"
-// 	if la.DotNetDir != "" {
-// 		dotnetCli = filepath.Join(la.DotNetDir, "dotnet")
-// 	}
-
-// 	return dotnetCli
-// }
-
-// func (la *Launcher) agentCli() string {
-// 	return filepath.Join(la.AgentDirForRuntime, AgentName)
-// }
 
 func (la *Launcher) agentFillPath() string {
 	if runtime.GOOS == "windows" {

@@ -15,17 +15,15 @@ import (
 	"github.com/cloudfoundry/libbuildpack"
 )
 
-const PackageArchiveName = "sealights-agent.tar.gz"
-
 const WindowsPackageName = "sealights-dotnet-agent-windows-self-contained.zip"
 const LinuxPackageName = "sealights-dotnet-agent-linux-self-contained.tar.gz"
 
-const DefaultLabId = "agents"
 const DefaultVersion = "latest"
 const AgentDir = "sealights"
 const DotnetDir = "dotnet-sdk"
+const VersionFileName = "version.txt"
 
-const AgentDownloadUrlFormat = "https://%s.sealights.co/dotnetcore/%s/%s"
+const AgentDownloadUrlFormat = "https://agents.sealights.co/dotnetcore/%s/%s"
 
 type AgentInstaller struct {
 	Log                *libbuildpack.Logger
@@ -37,103 +35,23 @@ func NewAgentInstaller(log *libbuildpack.Logger, options *SealightsOptions) *Age
 	return &AgentInstaller{Log: log, Options: options, MaxDownloadRetries: 3}
 }
 
-func (agi *AgentInstaller) InstallAgent(stager *libbuildpack.Stager) (string, error) {
+func (agi *AgentInstaller) InstallAgent(stager *libbuildpack.Stager) (string, string, error) {
 	packageName := getPackageNameByPlatform()
 	installationPath := filepath.Join(stager.BuildDir(), AgentDir)
 	archivePath, err := agi.downloadPackage(packageName)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	err = agi.extractPackage(archivePath, installationPath)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return AgentDir, nil
+	agentVersion := agi.readAgentVersion(installationPath)
+
+	return AgentDir, agentVersion, nil
 }
-
-// // Install dotnet sdk and runtime required for the agent
-// func (agi *AgentInstaller) InstallDependency(stager *libbuildpack.Stager) (string, error) {
-// 	if agi.isRequiredVersionInstalled(stager) {
-// 		agi.Log.Debug("Required dotnet version is already installed")
-// 		return "", nil
-// 	}
-
-// 	dependencyPath := filepath.Join(stager.BuildDir(), AgentDir, DotnetDir)
-// 	buildpackDir, err := libbuildpack.GetBuildpackDir()
-// 	if err != nil {
-// 		agi.Log.Error("Unable to determine buildpack directory: %s", err.Error())
-// 		return "", err
-// 	}
-
-// 	manifest, err := libbuildpack.NewManifest(buildpackDir, agi.Log, time.Now())
-// 	if err != nil {
-// 		agi.Log.Error("Unable to load buildpack manifest: %s", err.Error())
-// 		return "", err
-// 	}
-
-// 	sdkVersion, runtimeVersion := agi.selectDotnetVersions(manifest)
-// 	depinstaller := libbuildpack.NewInstaller(manifest)
-
-// 	if err = depinstaller.InstallDependency(
-// 		libbuildpack.Dependency{Name: "dotnet-sdk", Version: sdkVersion},
-// 		dependencyPath,
-// 	); err != nil {
-// 		agi.Log.Error("Sealights. Failed to install dotnet sdk")
-// 		return "", err
-// 	}
-
-// 	if err = depinstaller.InstallDependency(
-// 		libbuildpack.Dependency{Name: "dotnet-runtime", Version: runtimeVersion},
-// 		dependencyPath,
-// 	); err != nil {
-// 		agi.Log.Error("Sealights. Failed to install dotnet runtime")
-// 		return "", err
-// 	}
-
-// 	return filepath.Join("${HOME}", AgentDir, DotnetDir), nil
-// }
-
-// func (agi *AgentInstaller) isRequiredVersionInstalled(stager *libbuildpack.Stager) bool {
-// 	dotnetCliFile := filepath.Join(stager.DepDir(), "dotnet-sdk", "dotnet")
-// 	runtimeVersionsFile := filepath.Join(stager.DepDir(), "dotnet-sdk", "RuntimeVersion.txt")
-
-// 	if _, err := os.Stat(dotnetCliFile); errors.Is(err, os.ErrNotExist) {
-// 		agi.Log.Debug("dotnet cli tool is not installed")
-// 		return false
-// 	}
-
-// 	if _, err := os.Stat(runtimeVersionsFile); errors.Is(err, os.ErrNotExist) {
-// 		agi.Log.Debug("dotnet runtime is not installed")
-// 		return false
-// 	}
-
-// 	versionFileContent, err := ioutil.ReadFile(runtimeVersionsFile)
-// 	if err != nil {
-// 		return false
-// 	}
-
-// 	return strings.HasPrefix(string(versionFileContent), "6.")
-// }
-
-// func (agi *AgentInstaller) selectDotnetVersions(manifest *libbuildpack.Manifest) (sdkVersion string, runtimeVersion string) {
-// 	sdkVersions := manifest.AllDependencyVersions("dotnet-sdk")
-// 	sdkVersion, _ = libbuildpack.FindMatchingVersion("6.0.x", sdkVersions)
-// 	if sdkVersion == "" {
-// 		agi.Log.Warning("Failed to resolve sdk version. 6.0.2 will be used")
-// 		sdkVersion = "6.0.2"
-// 	}
-
-// 	runtimeVersions := manifest.AllDependencyVersions("dotnet-runtime")
-// 	runtimeVersion, _ = libbuildpack.FindMatchingVersion("6.0.x", runtimeVersions)
-// 	if runtimeVersion == "" {
-// 		agi.Log.Warning("Failed to resolve runtime version. 6.0.3 will be used")
-// 		runtimeVersion = "6.0.3"
-// 	}
-
-// 	return
-// }
 
 func (agi *AgentInstaller) downloadPackage(packageName string) (string, error) {
 	url := agi.getDownloadUrl(packageName)
@@ -176,11 +94,6 @@ func (agi *AgentInstaller) getDownloadUrl(packageName string) string {
 		return agi.Options.CustomAgentUrl
 	}
 
-	labId := DefaultLabId
-	if agi.Options.LabId != "" {
-		labId = agi.Options.LabId
-	}
-
 	version := DefaultVersion
 	if agi.Options.Version != "" {
 		version = agi.Options.Version
@@ -188,7 +101,7 @@ func (agi *AgentInstaller) getDownloadUrl(packageName string) string {
 
 	// resulting url example:
 	// https://agents.sealights.co/dotnetcore/latest/sealights-dotnet-agent-linux-self-contained.tar.gz
-	url := fmt.Sprintf(AgentDownloadUrlFormat, labId, version, packageName)
+	url := fmt.Sprintf(AgentDownloadUrlFormat, version, packageName)
 
 	return url
 }
@@ -243,6 +156,16 @@ func (agi *AgentInstaller) createClient() *http.Client {
 	} else {
 		return &http.Client{}
 	}
+}
+
+func (agi *AgentInstaller) readAgentVersion(installationPath string) string {
+	data, err := os.ReadFile(filepath.Join(installationPath, VersionFileName))
+	if err != nil {
+		agi.Log.Warning("Failed to get agent version: %v", err)
+		return "unknown"
+	}
+
+	return string(data)
 }
 
 func writeToFile(source io.Reader, destFile string, mode os.FileMode) error {
