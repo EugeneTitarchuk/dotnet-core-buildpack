@@ -130,5 +130,5 @@ func (conf *Configuration) buildToolName() string {
 		ver = "unknown"
 	}
 
-	return fmt.Sprintf("PCF (%s %s)", lang, ver)
+	return fmt.Sprintf("pcf-%s-%s", lang, ver)
 }
