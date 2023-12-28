@@ -176,7 +176,9 @@ func (agi *AgentInstaller) readAgentVersion(installationPath string) string {
 		return "unknown"
 	}
 
-	return string(data)
+	agentVersion := string(data)
+
+	return strings.TrimSuffix(agentVersion, "\n")
 }
 
 func writeToFile(source io.Reader, destFile string, mode os.FileMode) error {
