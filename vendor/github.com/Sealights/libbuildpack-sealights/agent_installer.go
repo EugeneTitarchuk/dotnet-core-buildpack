@@ -74,7 +74,7 @@ func (agi *AgentInstaller) extractPackage(source string, target string) error {
 	agi.Log.Debug("Sealights. Extract package from '%s' to '%s'", source, target)
 
 	var err error
-	var isZip = strings.HasSuffix(source, ".zip")
+	var isZip = strings.HasSuffix(source, ".zip") || strings.HasSuffix(source, ".nupkg")
 	if isZip {
 		err = libbuildpack.ExtractZip(source, target)
 	} else {
