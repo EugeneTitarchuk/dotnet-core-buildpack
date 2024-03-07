@@ -78,7 +78,6 @@ func (agi *AgentInstaller) extractPackage(source string, target string) error {
 	var err error
 	var isZip = strings.HasSuffix(source, ".zip") || strings.HasSuffix(source, ".nupkg")
 	if isZip {
-		agi.Log.Debug("Sealights. Extract zip")
 		err = libbuildpack.ExtractZip(source, target)
 	} else {
 		err = libbuildpack.ExtractTarGz(source, target)
@@ -105,10 +104,10 @@ func (agi *AgentInstaller) extractContentIfNeeded(target string) error {
 	if err != nil {
 		return err
 	} else if found {
+
 		// nuget package has different structure compare to
 		// regular installation package. need to extract corresponding
 		// agent from the content to align them
-
 		agentDir := filepath.Join(contentDirectory, getPackageDirByPlatform())
 		err = libbuildpack.MoveDirectory(agentDir, target)
 		if err != nil {

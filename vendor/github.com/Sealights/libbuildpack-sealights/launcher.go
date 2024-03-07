@@ -83,9 +83,11 @@ func (la *Launcher) buildCommandLine(command string) string {
 		return la.Options.CustomCommand
 	}
 
-	var sb strings.Builder
+	agentExecutable := la.agentFullPath()
+	os.Chmod(agentExecutable, 0755)
 
-	sb.WriteString(fmt.Sprintf("%s %s", la.agentFillPath(), la.Options.Verb))
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("%s %s", agentExecutable, la.Options.Verb))
 
 	for key, value := range la.Options.SlArguments {
 		sb.WriteString(fmt.Sprintf(" --%s %s", key, value))
@@ -165,7 +167,7 @@ func (la *Launcher) addProfilerConfiguration(agentPath string) (string, error) {
 	return fmt.Sprintf("%s %s", executeCommand, homeBasedEnvFile), nil
 }
 
-func (la *Launcher) agentFillPath() string {
+func (la *Launcher) agentFullPath() string {
 	if runtime.GOOS == "windows" {
 		return filepath.Join(la.AgentDirForRuntime, WindowsAgentName)
 	} else {
