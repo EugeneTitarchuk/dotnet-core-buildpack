@@ -20,6 +20,8 @@ import (
 
 const WindowsPackageName = "sealights-dotnet-agent-windows-self-contained.zip"
 const LinuxPackageName = "sealights-dotnet-agent-linux-self-contained.tar.gz"
+const WindowsPackageDir = "sealights-dotnet-agent-windows-self-contained"
+const LinuxPackageDir = "sealights-dotnet-agent-linux-self-contained"
 
 const DefaultVersion = "latest"
 const AgentDir = "sealights"
@@ -87,7 +89,33 @@ func (agi *AgentInstaller) extractPackage(source string, target string) error {
 		return err
 	}
 
+	err = agi.extractContentIfNeeded(target)
+	if err != nil {
+		agi.Log.Error("Sealights. Failed to copy content from package")
+		return err
+	}
+
 	agi.Log.Debug("Sealights. Package extracted.")
+	return nil
+}
+
+func (agi *AgentInstaller) extractContentIfNeeded(target string) error {
+	contentDirectory := filepath.Join(target, "content")
+	found, err := libbuildpack.FileExists(contentDirectory)
+	if err != nil {
+		return err
+	} else if found {
+		// nuget package has different structure compare to
+		// regular installation package. need to extract corresponding
+		// agent from the content to align them
+
+		agentDir := filepath.Join(contentDirectory, getPackageDirByPlatform())
+		err = libbuildpack.MoveDirectory(agentDir, target)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -207,6 +235,14 @@ func getPackageNameByPlatform() string {
 		return WindowsPackageName
 	} else {
 		return LinuxPackageName
+	}
+}
+
+func getPackageDirByPlatform() string {
+	if runtime.GOOS == "windows" {
+		return WindowsPackageDir
+	} else {
+		return LinuxPackageDir
 	}
 }
 
