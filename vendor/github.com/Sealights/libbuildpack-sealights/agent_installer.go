@@ -52,8 +52,6 @@ func (agi *AgentInstaller) InstallAgent(stager *libbuildpack.Stager) (string, st
 		return "", "", err
 	}
 
-	agi.updateFilePermissions(installationPath)
-
 	agentVersion := agi.readAgentVersion(installationPath)
 
 	return AgentDir, agentVersion, nil
@@ -124,6 +122,8 @@ func (agi *AgentInstaller) extractContentIfNeeded(target string) error {
 		if err != nil {
 			return err
 		}
+
+		agi.updateFilePermissions(target)
 	}
 
 	// remove "content" directory once it not needed
