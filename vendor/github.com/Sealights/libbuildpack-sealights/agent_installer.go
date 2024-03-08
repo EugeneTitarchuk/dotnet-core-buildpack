@@ -52,6 +52,8 @@ func (agi *AgentInstaller) InstallAgent(stager *libbuildpack.Stager) (string, st
 		return "", "", err
 	}
 
+	agi.updateFilePermissions(installationPath)
+
 	agentVersion := agi.readAgentVersion(installationPath)
 
 	return AgentDir, agentVersion, nil
@@ -104,11 +106,16 @@ func (agi *AgentInstaller) extractContentIfNeeded(target string) error {
 	if err != nil {
 		return err
 	} else if found {
-
 		// nuget package has different structure compare to
 		// regular installation package. need to extract corresponding
 		// agent from the content to align them
-		agentDir := filepath.Join(contentDirectory, getPackageDirByPlatform())
+
+		singlePackage, err := libbuildpack.FileExists(filepath.Join(contentDirectory, "version.txt"))
+		agentDir := contentDirectory
+		if !singlePackage {
+			agentDir = filepath.Join(contentDirectory, getPackageDirByPlatform())
+		}
+
 		err = libbuildpack.MoveDirectory(agentDir, target)
 		if err != nil {
 			return err
@@ -195,6 +202,18 @@ func (agi *AgentInstaller) createClient() *http.Client {
 	} else {
 		return &http.Client{}
 	}
+}
+
+func (agi *AgentInstaller) updateFilePermissions(installationPath string) error {
+	agentExecutable := filepath.Join(installationPath, LinuxAgentName)
+	cliFound, err := libbuildpack.FileExists(agentExecutable)
+	if err != nil {
+		return err
+	} else if cliFound {
+		return os.Chmod(agentExecutable, 0755)
+	}
+
+	return nil
 }
 
 func (agi *AgentInstaller) readAgentVersion(installationPath string) string {

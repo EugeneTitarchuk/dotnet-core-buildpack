@@ -84,7 +84,6 @@ func (la *Launcher) buildCommandLine(command string) string {
 	}
 
 	agentExecutable := la.agentFullPath()
-	os.Chmod(agentExecutable, 0755)
 
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("%s %s", agentExecutable, la.Options.Verb))
