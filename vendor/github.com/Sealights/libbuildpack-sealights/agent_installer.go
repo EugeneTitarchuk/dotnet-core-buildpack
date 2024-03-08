@@ -111,6 +111,10 @@ func (agi *AgentInstaller) extractContentIfNeeded(target string) error {
 		// agent from the content to align them
 
 		singlePackage, err := libbuildpack.FileExists(filepath.Join(contentDirectory, "version.txt"))
+		if err != nil {
+			return err
+		}
+
 		agentDir := contentDirectory
 		if !singlePackage {
 			agentDir = filepath.Join(contentDirectory, getPackageDirByPlatform())
@@ -121,6 +125,9 @@ func (agi *AgentInstaller) extractContentIfNeeded(target string) error {
 			return err
 		}
 	}
+
+	// remove "content" directory once it not needed
+	os.RemoveAll(contentDirectory)
 
 	return nil
 }
@@ -205,12 +212,13 @@ func (agi *AgentInstaller) createClient() *http.Client {
 }
 
 func (agi *AgentInstaller) updateFilePermissions(installationPath string) error {
-	agentExecutable := filepath.Join(installationPath, LinuxAgentName)
-	cliFound, err := libbuildpack.FileExists(agentExecutable)
+	files, err := os.ReadDir(installationPath)
 	if err != nil {
 		return err
-	} else if cliFound {
-		return os.Chmod(agentExecutable, 0755)
+	}
+
+	for _, file := range files {
+		os.Chmod(filepath.Join(installationPath, file.Name()), 0755)
 	}
 
 	return nil
