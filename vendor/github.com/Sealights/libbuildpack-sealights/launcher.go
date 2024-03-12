@@ -17,6 +17,8 @@ const WindowsAgentName = "SL.DotNet.exe"
 const LinuxProfilerId = "3B1DAA64-89D4-4999-ABF4-6A979B650B7D"
 const LinuxAgentName = "SL.DotNet"
 
+const DefaultPort = "31031"
+
 type Launcher struct {
 	Log                *libbuildpack.Logger
 	Options            *SealightsOptions
@@ -153,6 +155,7 @@ func (la *Launcher) addProfilerConfiguration(agentPath string) (string, error) {
 	fileContent += fmt.Sprintf("%s CORECLR_PROFILER={%s}\n", exportCommand, profilerId)
 	fileContent += fmt.Sprintf("%s CORECLR_PROFILER_PATH_32=%s\n", exportCommand, agentProfilerLibx86)
 	fileContent += fmt.Sprintf("%s CORECLR_PROFILER_PATH_64=%s\n", exportCommand, agentProfilerLibx64)
+	fileContent += fmt.Sprintf("%s SL_AGENT_PORT=%s\n", exportCommand, DefaultPort)
 
 	testListenerSessionKey, sessionKeyExists := la.Options.SlArguments["testListenerSessionKey"]
 	if sessionKeyExists {
