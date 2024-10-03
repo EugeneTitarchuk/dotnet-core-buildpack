@@ -21,7 +21,9 @@ type SealightsOptions struct {
 	Proxy          string
 	ProxyUsername  string
 	ProxyPassword  string
+	UsePic         bool
 	SlArguments    map[string]string
+	SlEnvironment  map[string]string
 }
 
 type Configuration struct {
@@ -58,6 +60,9 @@ func (conf *Configuration) parseVcapServices() {
 		"verb":           true,
 		"customAgentUrl": true,
 		"customCommand":  true,
+		"usePic":         true,
+		"cli":            true,
+		"env":            true,
 	}
 
 	for _, services := range vcapServices {
@@ -66,14 +71,9 @@ func (conf *Configuration) parseVcapServices() {
 				continue
 			}
 
-			queryString := func(key string) string {
-				if value, ok := service.Credentials[key].(string); ok {
-					return value
-				}
-				return ""
-			}
+			slEnvironment := getValue[map[string]string](service.Credentials, "env")
 
-			slArguments := map[string]string{}
+			slArguments := getValue[map[string]string](service.Credentials, "cli")
 			for parameterName, parameterValue := range service.Credentials {
 				_, shouldBeSkipped := buildpackSpecificArguments[parameterName]
 				if shouldBeSkipped {
@@ -84,14 +84,16 @@ func (conf *Configuration) parseVcapServices() {
 			}
 
 			options := &SealightsOptions{
-				Version:        queryString("version"),
-				Verb:           queryString("verb"),
-				CustomAgentUrl: queryString("customAgentUrl"),
-				CustomCommand:  queryString("customCommand"),
-				Proxy:          queryString("proxy"),
-				ProxyUsername:  queryString("proxyUsername"),
-				ProxyPassword:  queryString("proxyPassword"),
+				Version:        getValue[string](service.Credentials, "version"),
+				Verb:           getValue[string](service.Credentials, "verb"),
+				CustomAgentUrl: getValue[string](service.Credentials, "customAgentUrl"),
+				CustomCommand:  getValue[string](service.Credentials, "customCommand"),
+				Proxy:          getValue[string](service.Credentials, "proxy"),
+				ProxyUsername:  getValue[string](service.Credentials, "proxyUsername"),
+				ProxyPassword:  getValue[string](service.Credentials, "proxyPassword"),
+				UsePic:         getValue[bool](service.Credentials, "usePic"),
 				SlArguments:    slArguments,
+				SlEnvironment:  slEnvironment,
 			}
 
 			// write warning in case token or session is not provided
@@ -140,4 +142,14 @@ func (conf *Configuration) buildToolName() string {
 	}
 
 	return fmt.Sprintf("sl-pcf-%s", ver)
+}
+
+func getValue[T any](dict map[string]interface{}, key string) T {
+	var result T
+
+	if value, ok := dict[key].(T); ok {
+		return value
+	}
+
+	return result
 }
