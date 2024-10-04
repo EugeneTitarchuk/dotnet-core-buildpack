@@ -72,15 +72,20 @@ func (conf *Configuration) parseVcapServices() {
 			}
 
 			slEnvironment := getValue[map[string]string](service.Credentials, "env")
-
 			slArguments := getValue[map[string]string](service.Credentials, "cli")
-			for parameterName, parameterValue := range service.Credentials {
-				_, shouldBeSkipped := buildpackSpecificArguments[parameterName]
-				if shouldBeSkipped {
-					continue
-				}
 
-				slArguments[parameterName] = parameterValue.(string)
+			// this validation required to make settings for version 1.5.0 back compatible with 1.4
+			// there is no property "cli" in the old version of the libpack - all fields for cli comes directly from settings
+			// so if env variables are set - all settings not from the new "cli" property will be used only by libpack itself
+			if len(slEnvironment) == 0 {
+				for parameterName, parameterValue := range service.Credentials {
+					_, shouldBeSkipped := buildpackSpecificArguments[parameterName]
+					if shouldBeSkipped {
+						continue
+					}
+
+					slArguments[parameterName] = parameterValue.(string)
+				}
 			}
 
 			options := &SealightsOptions{
@@ -119,7 +124,7 @@ func (conf *Configuration) parseVcapServices() {
 				options.SlArguments["tags"] = conf.buildToolName()
 			}
 
-			if options.Verb == "" {
+			if options.Verb == "" && !options.UsePic {
 				options.Verb = "startBackgroundTestListener"
 			}
 
