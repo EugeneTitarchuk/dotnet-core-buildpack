@@ -53,6 +53,8 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 		la.Log.Warning("Sealights. Verb or Custom Command are missed - start command will not be modified")
 	}
 
+	os.Setenv("EugeneTest", "Test")
+
 	return nil
 }
 
