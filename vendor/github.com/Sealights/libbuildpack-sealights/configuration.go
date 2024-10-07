@@ -72,7 +72,14 @@ func (conf *Configuration) parseVcapServices() {
 			}
 
 			slEnvironment := getValue[map[string]string](service.Credentials, "env")
+			if slEnvironment == nil {
+				slEnvironment = map[string]string{}
+			}
+
 			slArguments := getValue[map[string]string](service.Credentials, "cli")
+			if slArguments == nil {
+				slArguments = map[string]string{}
+			}
 
 			// this validation required to make settings for version 1.5.0 back compatible with 1.4
 			// there is no property "cli" in the old version of the libpack - all fields for cli comes directly from settings
