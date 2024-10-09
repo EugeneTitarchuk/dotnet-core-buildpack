@@ -93,9 +93,11 @@ func (emng *EnvManager) WriteIntoFile(filePath string, envVariables map[string]s
 		fileContent += fmt.Sprintf("%s %s=%s\n", exportCommand, key, value)
 	}
 
+	emng.Log.Debug("write %s \ninto the file %s", fileContent, filePath)
 	if _, err = file.WriteString(fileContent); err != nil {
 		return err
 	}
+	emng.Log.Debug("done!")
 
 	return nil
 }
