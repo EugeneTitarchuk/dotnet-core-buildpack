@@ -71,9 +71,13 @@ func (conf *Configuration) parseVcapServices() {
 				continue
 			}
 
-			slEnvironment := getValue[map[string]string](service.Credentials, "env")
+			slEnvironment := getValue[map[string]interface{}](service.Credentials, "env")
 			if slEnvironment == nil {
-				slEnvironment = map[string]string{}
+				slEnvironment = make(map[string]interface{})
+			}
+
+			for key, value := range slEnvironment {
+				conf.Log.Info("Sealights. Variable: %s = %s", key, value)
 			}
 
 			slArguments := getValue[map[string]string](service.Credentials, "cli")
@@ -105,7 +109,7 @@ func (conf *Configuration) parseVcapServices() {
 				ProxyPassword:  getValue[string](service.Credentials, "proxyPassword"),
 				UsePic:         getValue[bool](service.Credentials, "usePic"),
 				SlArguments:    slArguments,
-				SlEnvironment:  slEnvironment,
+				//SlEnvironment:  slEnvironment,
 			}
 
 			// write warning in case token or session is not provided
