@@ -35,6 +35,8 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 	startCommand := releaseInfo.GetStartCommand()
 	newStartCommand := la.updateStartCommand(startCommand)
 
+	la.Log.Debug("ModifyStartParameters")
+
 	if la.Options.UsePic {
 		la.modifyProfileForPic()
 	}
@@ -164,7 +166,7 @@ func (la *Launcher) modifyProfileForPic() {
 		envFile := filepath.Join("${BUILD_DIR}/.profile.d/", la.agentEnvFileName())
 		err := envManager.WriteIntoFile(envFile, envVariables)
 		if err != nil {
-			la.Log.Error("Sealights. Faailed to create file in .profile.d")
+			la.Log.Error("Sealights. Failed to create file in .profile.d")
 		}
 	}
 
