@@ -98,7 +98,7 @@ func (conf *Configuration) parseVcapServices() {
 					slArguments[parameterName] = parameterValue.(string)
 				}
 			} else {
-				conf.Log.Warning("Sealights. Option 'env' is provided - only options specified directly in the 'cli' field will be propagated to a command line")
+				conf.Log.Debug("Sealights. Option 'env' is provided - only options specified directly in the 'cli' field will be propagated to a command line")
 			}
 
 			options := &SealightsOptions{

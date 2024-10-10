@@ -89,7 +89,7 @@ func (emng *EnvManager) WriteIntoFile(filePath string, envVariables map[string]s
 
 	fileContent := ""
 
-	for key, value := range emng.Options.SlEnvironment {
+	for key, value := range envVariables {
 		fileContent += fmt.Sprintf("%s %s=%s\n", exportCommand, key, value)
 	}
 
