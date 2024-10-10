@@ -71,18 +71,18 @@ func (conf *Configuration) parseVcapServices() {
 				continue
 			}
 
-			slEnvironment := getValue[map[string]interface{}](service.Credentials, "env")
+			slEnvironment := getMap(service.Credentials, "env")
 			if slEnvironment == nil {
-				slEnvironment = make(map[string]interface{})
+				slEnvironment = make(map[string]string)
 			}
 
 			for key, value := range slEnvironment {
 				conf.Log.Info("Sealights. Variable: %s = %s", key, value)
 			}
 
-			slArguments := getValue[map[string]string](service.Credentials, "cli")
+			slArguments := getMap(service.Credentials, "cli")
 			if slArguments == nil {
-				slArguments = map[string]string{}
+				slArguments = make(map[string]string)
 			}
 
 			// this validation required to make settings for version 1.5.0 back compatible with 1.4
@@ -97,6 +97,8 @@ func (conf *Configuration) parseVcapServices() {
 
 					slArguments[parameterName] = parameterValue.(string)
 				}
+			} else {
+				conf.Log.Warning("Sealights. Option 'env' is provided - only options specified directly in the 'cli' field will be propagated to a command line")
 			}
 
 			options := &SealightsOptions{
@@ -109,7 +111,7 @@ func (conf *Configuration) parseVcapServices() {
 				ProxyPassword:  getValue[string](service.Credentials, "proxyPassword"),
 				UsePic:         getValue[bool](service.Credentials, "usePic"),
 				SlArguments:    slArguments,
-				//SlEnvironment:  slEnvironment,
+				SlEnvironment:  slEnvironment,
 			}
 
 			// write warning in case token or session is not provided
@@ -165,6 +167,16 @@ func getValue[T any](dict map[string]interface{}, key string) T {
 
 	if value, ok := dict[key].(T); ok {
 		return value
+	}
+
+	return result
+}
+
+func getMap(dict map[string]interface{}, key string) map[string]string {
+	var result = make(map[string]string)
+
+	for key, value := range getValue[map[string]interface{}](dict, key) {
+		result[key] = value.(string)
 	}
 
 	return result
