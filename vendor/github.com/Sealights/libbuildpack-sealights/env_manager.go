@@ -45,7 +45,7 @@ func (emng *EnvManager) GetVariables(runtimeDirectory string) map[string]string 
 
 	env_variables["Cor_Profiler"] = profilerInfo.Id
 	env_variables["Cor_Enable_Profiling"] = "1"
-	env_variables["Cor_Profiler_Path"] = ""
+	env_variables["Cor_Profiler_Path"] = agentProfilerLibx64
 	env_variables["COR_PROFILER_PATH_32"] = agentProfilerLibx86
 	env_variables["COR_PROFILER_PATH_64"] = agentProfilerLibx64
 	env_variables["CORECLR_ENABLE_PROFILING"] = "1"

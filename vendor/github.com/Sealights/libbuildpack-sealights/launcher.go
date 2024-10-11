@@ -37,9 +37,7 @@ func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
 
 	la.Log.Debug("ModifyStartParameters")
 
-	if la.Options.UsePic {
-		la.modifyProfileForPic()
-	}
+	la.setEnvVariablesGlobally()
 
 	shouldApply := la.Options.Verb != "" || la.Options.CustomCommand != ""
 	if shouldApply {
@@ -154,9 +152,16 @@ func (la *Launcher) agentEnvFileName() string {
 	}
 }
 
-func (la *Launcher) modifyProfileForPic() {
+func (la *Launcher) setEnvVariablesGlobally() {
 	envManager := NewEnvManager(la.Log, la.Options)
-	envVariables := envManager.GetVariables(la.AgentDirForRuntime)
+	var envVariables map[string]string
+	if la.Options.UsePic {
+		// set all variables important for the profiler
+		envVariables = envManager.GetVariables(la.AgentDirForRuntime)
+	} else {
+		// set only dlls provided directly in options
+		envVariables = la.Options.SlArguments
+	}
 
 	if runtime.GOOS == "windows" {
 		for key, value := range envVariables {
