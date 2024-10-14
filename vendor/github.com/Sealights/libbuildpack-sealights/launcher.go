@@ -176,7 +176,7 @@ func (la *Launcher) setEnvVariablesGlobally() {
 		}
 
 		for _, e := range entries {
-			fmt.Println(e.Name())
+			la.Log.Debug(e.Name())
 		}
 
 		envFile := filepath.Join(build_dir, ".profile.d", la.agentEnvFileName())
