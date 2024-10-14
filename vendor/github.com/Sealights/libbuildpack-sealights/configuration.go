@@ -114,18 +114,18 @@ func (conf *Configuration) parseVcapServices() {
 				SlEnvironment:  slEnvironment,
 			}
 
-			// write warning in case token or session is not provided
-			_, tokenProvided := options.SlArguments["token"]
-			_, tokenFileProvided := options.SlArguments["tokenFile"]
-			if !tokenProvided && !tokenFileProvided {
-				conf.Log.Warning("Sealights access token isn't provided")
-			}
+			// // write warning in case token or session is not provided
+			// _, tokenProvided := options.SlArguments["token"]
+			// _, tokenFileProvided := options.SlArguments["tokenFile"]
+			// if !tokenProvided && !tokenFileProvided {
+			// 	conf.Log.Warning("Sealights access token isn't provided")
+			// }
 
-			_, sessionProvided := options.SlArguments["buildSessionId"]
-			_, sessionFileProvided := options.SlArguments["buildSessionIdFile"]
-			if !sessionProvided && !sessionFileProvided {
-				conf.Log.Warning("Sealights build session id isn't provided")
-			}
+			// _, sessionProvided := options.SlArguments["buildSessionId"]
+			// _, sessionFileProvided := options.SlArguments["buildSessionIdFile"]
+			// if !sessionProvided && !sessionFileProvided {
+			// 	conf.Log.Warning("Sealights build session id isn't provided")
+			// }
 
 			_, toolsProvided := options.SlArguments["tools"]
 			if !toolsProvided {
