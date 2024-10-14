@@ -13,18 +13,20 @@ import (
 
 const WindowsAgentName = "SL.DotNet.exe"
 const LinuxAgentName = "SL.DotNet"
+const GlobalVariablesFile = "sealights-env.sh"
 
 type Launcher struct {
 	Log                *libbuildpack.Logger
 	Options            *SealightsOptions
 	AgentDirAbsolute   string
 	AgentDirForRuntime string
+	Stager             *libbuildpack.Stager
 }
 
-func NewLauncher(log *libbuildpack.Logger, options *SealightsOptions, agentInstallationDir string, buildDir string) *Launcher {
+func NewLauncher(log *libbuildpack.Logger, options *SealightsOptions, agentInstallationDir string, stager *libbuildpack.Stager) *Launcher {
 	agentDirForRuntime := filepath.Join("${HOME}", agentInstallationDir)
-	agentDirAbsolute := filepath.Join(buildDir, agentInstallationDir)
-	return &Launcher{Log: log, Options: options, AgentDirForRuntime: agentDirForRuntime, AgentDirAbsolute: agentDirAbsolute}
+	agentDirAbsolute := filepath.Join(stager.BuildDir(), agentInstallationDir)
+	return &Launcher{Log: log, Options: options, AgentDirForRuntime: agentDirForRuntime, AgentDirAbsolute: agentDirAbsolute, Stager: stager}
 }
 
 func (la *Launcher) ModifyStartParameters(stager *libbuildpack.Stager) error {
@@ -168,26 +170,16 @@ func (la *Launcher) setEnvVariablesGlobally() {
 			os.Setenv(key, value)
 		}
 	} else {
-		build_dir := os.Getenv("BUILD_DIR")
-		if build_dir == "" {
-			build_dir = "./"
-		}
-
-		entries, err := os.ReadDir(build_dir)
+		localEnvFile := filepath.Join(la.AgentDirAbsolute, GlobalVariablesFile)
+		err := envManager.WriteIntoFile(localEnvFile, envVariables)
 		if err != nil {
-			la.Log.Error("failed", err)
+			la.Log.Error("Sealights. Failed to create local env file")
 		}
 
-		for _, e := range entries {
-			la.Log.Debug(e.Name())
-		}
-
-		os.MkdirAll(filepath.Join(build_dir, ".profile.d"), os.ModePerm)
-
-		envFile := filepath.Join(build_dir, ".profile.d", la.agentEnvFileName())
-		err = envManager.WriteIntoFile(envFile, envVariables)
-		if err != nil {
-			la.Log.Error("Sealights. Failed to create file in .profile.d")
+		sealightsEnvPath := filepath.Join(la.Stager.DepDir(), "profile.d", GlobalVariablesFile)
+		la.Log.Debug("Copy %s to %s", localEnvFile, sealightsEnvPath)
+		if err = libbuildpack.CopyFile(localEnvFile, sealightsEnvPath); err != nil {
+			la.Log.Error("Sealights. Failed to copy file to profile.d")
 		}
 	}
 

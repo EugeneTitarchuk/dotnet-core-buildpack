@@ -49,7 +49,7 @@ func (h *SealightsHook) AfterCompile(stager *libbuildpack.Stager) error {
 	}
 	h.Log.Info("Sealights. Agent is installed (version: %s)", agentVersion)
 
-	launcher := NewLauncher(h.Log, conf.Value, agentDir, stager.BuildDir())
+	launcher := NewLauncher(h.Log, conf.Value, agentDir, stager)
 	launcher.ModifyStartParameters(stager)
 
 	h.Log.Info("Sealights. Service is set up")
