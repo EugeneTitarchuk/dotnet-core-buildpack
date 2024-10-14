@@ -169,8 +169,18 @@ func (la *Launcher) setEnvVariablesGlobally() {
 		}
 	} else {
 		build_dir := os.Getenv("BUILD_DIR")
+
+		entries, err := os.ReadDir(build_dir)
+		if err != nil {
+			la.Log.Error("failed", err)
+		}
+
+		for _, e := range entries {
+			fmt.Println(e.Name())
+		}
+
 		envFile := filepath.Join(build_dir, ".profile.d", la.agentEnvFileName())
-		err := envManager.WriteIntoFile(envFile, envVariables)
+		err = envManager.WriteIntoFile(envFile, envVariables)
 		if err != nil {
 			la.Log.Error("Sealights. Failed to create file in .profile.d")
 		}
