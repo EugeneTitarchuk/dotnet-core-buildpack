@@ -169,6 +169,9 @@ func (la *Launcher) setEnvVariablesGlobally() {
 		}
 	} else {
 		build_dir := os.Getenv("BUILD_DIR")
+		if build_dir == "" {
+			build_dir = "./"
+		}
 
 		entries, err := os.ReadDir(build_dir)
 		if err != nil {
