@@ -182,6 +182,8 @@ func (la *Launcher) setEnvVariablesGlobally() {
 			la.Log.Debug(e.Name())
 		}
 
+		os.MkdirAll(filepath.Join(build_dir, ".profile.d"), os.ModePerm)
+
 		envFile := filepath.Join(build_dir, ".profile.d", la.agentEnvFileName())
 		err = envManager.WriteIntoFile(envFile, envVariables)
 		if err != nil {
