@@ -120,10 +120,14 @@ func (conf *Configuration) parseVcapServices() {
 			if !isTokenProvided {
 				conf.Log.Warning("Sealights token isn't provided")
 			}
-			
+
 			_, picEnabled := options.SlEnvironment["SL_PROFILER_INITIALIZECOLLECTOR"]
 			if picEnabled {
-				options.UsePic = true;
+				options.UsePic = true
+			}
+
+			if options.UsePic {
+				conf.Log.Debug("Sealights. PIC mode enabled")
 			}
 
 			_, toolsProvided := options.SlArguments["tools"]
@@ -138,6 +142,7 @@ func (conf *Configuration) parseVcapServices() {
 
 			if options.Verb == "" && !options.UsePic {
 				options.Verb = "startBackgroundTestListener"
+				conf.Log.Debug("Sealights. Verb is not set. Continue with 'startBackgroundTestListener'")
 			}
 
 			_, collectorIdPorvided := options.SlArguments["testListenerSessionKey"]
@@ -152,7 +157,7 @@ func (conf *Configuration) parseVcapServices() {
 }
 
 func (conf *Configuration) isAnyVariableProvided(variableName []string, options SealightsOptions) bool {
-	for _, key := range variableName{
+	for _, key := range variableName {
 		_, variableProvided := options.SlArguments[key]
 		if variableProvided {
 			return true
@@ -163,7 +168,7 @@ func (conf *Configuration) isAnyVariableProvided(variableName []string, options 
 			return true
 		}
 	}
-	
+
 	return false
 }
 
