@@ -122,11 +122,9 @@ func (conf *Configuration) parseVcapServices() {
 				options.UsePic = true
 			}
 
-			optionsJson, _ := json.Marshal(options)
-
-			conf.Log.Debug("Sealights. Options %s", optionsJson)
-
 			if options.UsePic {
+				optionsJson, _ := json.Marshal(options)
+				conf.Log.Debug("Sealights. Options %s", optionsJson)
 				conf.Log.Debug("Sealights. PIC mode enabled")
 			}
 
