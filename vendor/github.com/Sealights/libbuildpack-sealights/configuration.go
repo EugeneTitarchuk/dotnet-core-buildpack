@@ -114,18 +114,17 @@ func (conf *Configuration) parseVcapServices() {
 				SlEnvironment:  slEnvironment,
 			}
 
-			// // write warning in case token or session is not provided
-			// _, tokenProvided := options.SlArguments["token"]
-			// _, tokenFileProvided := options.SlArguments["tokenFile"]
-			// if !tokenProvided && !tokenFileProvided {
-			// 	conf.Log.Warning("Sealights access token isn't provided")
-			// }
-
-			// _, sessionProvided := options.SlArguments["buildSessionId"]
-			// _, sessionFileProvided := options.SlArguments["buildSessionIdFile"]
-			// if !sessionProvided && !sessionFileProvided {
-			// 	conf.Log.Warning("Sealights build session id isn't provided")
-			// }
+			// write warning in case token or session is not provided
+			tokenVariables := []string{"token", "tokenFile", "SL_TOKEN", "SL_TOKENFILE"}
+			isTokenProvided := conf.isAnyVariableProvided(tokenVariables, *options)
+			if !isTokenProvided {
+				conf.Log.Warning("Sealights token isn't provided")
+			}
+			
+			_, picEnabled := options.SlEnvironment["SL_PROFILER_INITIALIZECOLLECTOR"]
+			if picEnabled {
+				options.UsePic = true;
+			}
 
 			_, toolsProvided := options.SlArguments["tools"]
 			if !toolsProvided {
@@ -150,6 +149,22 @@ func (conf *Configuration) parseVcapServices() {
 			return
 		}
 	}
+}
+
+func (conf *Configuration) isAnyVariableProvided(variableName []string, options SealightsOptions) bool {
+	for _, key := range variableName{
+		_, variableProvided := options.SlArguments[key]
+		if variableProvided {
+			return true
+		}
+
+		_, variableProvided = options.SlEnvironment[key]
+		if variableProvided {
+			return true
+		}
+	}
+	
+	return false
 }
 
 func (conf *Configuration) buildToolName() string {
