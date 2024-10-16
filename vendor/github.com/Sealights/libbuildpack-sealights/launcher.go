@@ -182,8 +182,6 @@ func (la *Launcher) setEnvVariablesGlobally() {
 			la.Log.Error("Sealights. Failed to copy file to profile.d")
 		}
 	}
-
-	la.Log.Info("Sealights. PIC mode enabled")
 }
 
 func maskSensitiveData(input string) string {
