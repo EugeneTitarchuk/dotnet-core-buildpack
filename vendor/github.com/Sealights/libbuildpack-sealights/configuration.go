@@ -76,10 +76,6 @@ func (conf *Configuration) parseVcapServices() {
 				slEnvironment = make(map[string]string)
 			}
 
-			for key, value := range slEnvironment {
-				conf.Log.Info("Sealights. Variable: %s = %s", key, value)
-			}
-
 			slArguments := getMap(service.Credentials, "cli")
 			if slArguments == nil {
 				slArguments = make(map[string]string)
@@ -125,6 +121,10 @@ func (conf *Configuration) parseVcapServices() {
 			if picEnabled {
 				options.UsePic = true
 			}
+
+			optionsJson, _ := json.Marshal(options)
+
+			conf.Log.Debug("Sealights. Options %s", optionsJson)
 
 			if options.UsePic {
 				conf.Log.Debug("Sealights. PIC mode enabled")
